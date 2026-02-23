@@ -151,9 +151,6 @@ select.input{appearance:none;cursor:pointer}
 .chip{padding:5px 12px;border-radius:20px;border:1px solid var(--border2);font-size:12px;color:var(--muted);cursor:pointer;transition:all .15s}
 .chip:hover{border-color:var(--accent);color:var(--accent2)}
 
-/* API BANNER */
-.api-banner{background:#10a37f18;border:1px solid #10a37f44;border-radius:14px;padding:14px 16px;margin-bottom:16px;font-size:13px;display:flex;align-items:flex-start;gap:10px}
-.api-banner-icon{font-size:20px;flex-shrink:0}
 
 /* RING */
 .ring-wrap{position:relative;display:inline-flex;align-items:center;justify-content:center}
@@ -196,8 +193,6 @@ select.input{appearance:none;cursor:pointer}
 .sub-tag{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:20px;font-size:12px;font-weight:600}
 .sub-tag .rem{font-size:14px;cursor:pointer;opacity:.7;line-height:1}
 .sub-tag .rem:hover{opacity:1}
-.settings-row{display:flex;gap:8px;margin-bottom:10px}
-.settings-row .input{flex:1}
 #ham-btn{display:none;position:fixed;top:16px;left:16px;z-index:300;background:var(--card);border:1px solid var(--border2);border-radius:10px;width:40px;height:40px;align-items:center;justify-content:center;cursor:pointer;font-size:18px}
 
 @media(max-width:900px){
@@ -287,7 +282,7 @@ select.input{appearance:none;cursor:pointer}
     <div class="nav-link" onclick="goTo('timetable',this)"><span class="nav-icon">📅</span>Timetable</div>
     <div class="nav-link" onclick="goTo('notes',this)"><span class="nav-icon">📂</span>Notes</div>
     <div class="nav-link" onclick="goTo('ai',this)"><span class="nav-icon">🤖</span>AI Assistant</div>
-    <div class="nav-link" onclick="goTo('settings',this)"><span class="nav-icon">⚙️</span>Settings</div>
+
     <div class="nav-link" onclick="goTo('profile',this)"><span class="nav-icon">👤</span>Profile</div>
     <div class="sidebar-user">
       <div class="sidebar-user-name" id="sb-name">—</div>
@@ -388,10 +383,7 @@ select.input{appearance:none;cursor:pointer}
     <!-- AI ASSISTANT -->
     <div class="page" id="page-ai">
       <div class="ph"><div class="ph-title">🤖 AI Study Assistant</div><div class="ph-sub">Powered by GPT-4o-mini — your personal academic companion</div></div>
-      <div class="api-banner" id="ai-banner" style="display:none">
-        <div class="api-banner-icon">🔑</div>
-        <div><strong>OpenAI API Key Required</strong><br><span style="color:var(--muted)">Go to <span class="link" onclick="goTo('settings',null)">⚙️ Settings</span> and paste your key. Get one free at <a href="https://platform.openai.com/api-keys" target="_blank" style="color:var(--teal)">platform.openai.com</a></span></div>
-      </div>
+
       <div class="card">
         <div class="chat-area" id="chat-area">
           <div class="msg bot">
@@ -413,36 +405,7 @@ select.input{appearance:none;cursor:pointer}
       </div>
     </div>
 
-    <!-- SETTINGS -->
-    <div class="page" id="page-settings">
-      <div class="ph"><div class="ph-title">⚙️ Settings</div><div class="ph-sub">Configure your API keys</div></div>
-      <div class="card mb24">
-        <div class="card-title">🤖 OpenAI API Key <span style="font-size:11px;font-weight:400;color:var(--teal);margin-left:6px">(required for AI chat)</span></div>
-        <p class="text-sm muted mb16">Your key is stored only in your browser's localStorage — never transmitted to anyone except OpenAI directly.</p>
-        <div class="settings-row">
-          <input id="oai-key" class="input" type="password" placeholder="sk-proj-…"/>
-          <button class="btn btn-primary" onclick="saveOAIKey()">💾 Save</button>
-        </div>
-        <div id="key-stat" class="text-xs mt8" style="color:var(--muted)"></div>
-        <div class="divider"></div>
-        <p class="text-xs muted">Get a free key → <a href="https://platform.openai.com/api-keys" target="_blank" style="color:var(--teal)">platform.openai.com/api-keys</a> (new accounts get free credits)</p>
-      </div>
-      <div class="card">
-        <div class="card-title">📧 EmailJS Configuration <span style="font-size:11px;font-weight:400;color:var(--muted);margin-left:6px">(for real OTP emails)</span></div>
-        <p class="text-sm muted mb16">Create a free account at <a href="https://emailjs.com" target="_blank" style="color:var(--teal)">emailjs.com</a>, create a service + email template, then fill these in. <br><strong style="color:var(--gold)">Without this, OTPs appear in a popup dialog (demo mode).</strong></p>
-        <div class="form-group"><label class="form-label">Service ID</label><input id="ejs-svc" class="input" placeholder="service_xxxxxxx"/></div>
-        <div class="form-group"><label class="form-label">Template ID</label><input id="ejs-tpl" class="input" placeholder="template_xxxxxxx"/></div>
-        <div class="form-group" style="margin-bottom:16px"><label class="form-label">Public Key</label><input id="ejs-pub" class="input" placeholder="Your public key"/></div>
-        <button class="btn btn-primary" onclick="saveEJSConfig()">💾 Save EmailJS Config</button>
-        <div class="divider"></div>
-        <div style="font-size:12px;color:var(--muted);background:var(--surface);padding:12px;border-radius:10px;line-height:1.7">
-          <strong style="color:var(--text)">EmailJS Template variables to use:</strong><br>
-          <code style="color:var(--accent2)">{{to_email}}</code> — recipient email<br>
-          <code style="color:var(--accent2)">{{otp_code}}</code> — the 6-digit OTP<br>
-          <code style="color:var(--accent2)">{{app_name}}</code> — "StudyMate"
-        </div>
-      </div>
-    </div>
+
 
     <!-- PROFILE -->
     <div class="page" id="page-profile">
@@ -504,35 +467,26 @@ const uid=()=>Math.random().toString(36).slice(2,9);
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const $=id=>document.getElementById(id);
 
+// ════════ DEVELOPER CONFIG — edit these values ════════
+const CONFIG = {
+  OPENAI_API_KEY: 'YOUR_OPENAI_API_KEY_HERE',   // ← paste your sk-... key here
+  EMAILJS_SERVICE_ID:  'YOUR_EMAILJS_SERVICE_ID',  // ← e.g. service_abc123
+  EMAILJS_TEMPLATE_ID: 'YOUR_EMAILJS_TEMPLATE_ID', // ← e.g. template_xyz789
+  EMAILJS_PUBLIC_KEY:  'YOUR_EMAILJS_PUBLIC_KEY',  // ← your EmailJS public key
+};
+// ══════════════════════════════════════════════════════
+
 // ════════ INIT ════════
 function init(){
   S.tasks=ld('sm_tasks',[]);S.notes=ld('sm_notes',[]);
   const sess=ld('sm_session',null);
   if(sess){S.user=sess;showApp();}
   startCanvas();
-  // Restore settings
-  const k=ld('sm_oai','');if(k)$('oai-key').value=k;
-  const ejs=ld('sm_ejs',{});
-  if(ejs.svc)$('ejs-svc').value=ejs.svc;
-  if(ejs.tpl)$('ejs-tpl').value=ejs.tpl;
-  if(ejs.pub){$('ejs-pub').value=ejs.pub;try{emailjs.init(ejs.pub)}catch(e){}}
+  // Init EmailJS with developer key
+  try{ emailjs.init(CONFIG.EMAILJS_PUBLIC_KEY); }catch(e){}
 }
 
-// ════════ SETTINGS ════════
-function saveOAIKey(){
-  const k=$('oai-key').value.trim();
-  if(!k){toast('Paste your API key ⚠️');return;}
-  sv('sm_oai',k);
-  $('key-stat').textContent='✅ Saved locally.';$('key-stat').style.color='var(--teal)';
-  checkBanner();toast('OpenAI key saved 🔑');
-}
-function saveEJSConfig(){
-  const cfg={svc:$('ejs-svc').value.trim(),tpl:$('ejs-tpl').value.trim(),pub:$('ejs-pub').value.trim()};
-  sv('sm_ejs',cfg);
-  if(cfg.pub)try{emailjs.init(cfg.pub)}catch(e){}
-  toast('EmailJS config saved 📧');
-}
-function checkBanner(){$('ai-banner').style.display=ld('sm_oai','')?'none':'flex';}
+
 
 // ════════ AUTH ════════
 function s1go(){
@@ -547,13 +501,12 @@ function genOTP(){return Math.floor(100000+Math.random()*900000).toString();}
 async function sendOTP(email){
   const btn=$('s1btn');btn.disabled=true;btn.textContent='Sending…';
   const otp=genOTP();S.pendOTP=otp;S.otpExp=Date.now()+10*60*1000;
-  const ejsCfg=ld('sm_ejs',{});let sent=false;
-  if(ejsCfg.svc&&ejsCfg.tpl&&ejsCfg.pub){
+  let sent=false;
+  if(CONFIG.EMAILJS_SERVICE_ID!=='YOUR_EMAILJS_SERVICE_ID'){
     try{
-      emailjs.init(ejsCfg.pub);
-      await emailjs.send(ejsCfg.svc,ejsCfg.tpl,{to_email:email,otp_code:otp,app_name:'StudyMate'});
+      await emailjs.send(CONFIG.EMAILJS_SERVICE_ID,CONFIG.EMAILJS_TEMPLATE_ID,{to_email:email,otp_code:otp,app_name:'StudyMate'});
       sent=true;toast('OTP sent to '+email+' 📧');
-    }catch(e){console.warn('EmailJS:',e);}
+    }catch(e){console.warn('EmailJS error:',e);}
   }
   if(!sent){
     // Demo mode
@@ -640,8 +593,7 @@ function showApp(){
   const u=S.user;$('sb-name').textContent=u.name;$('sb-email').textContent=u.email;
   const h=new Date().getHours();
   $('dash-greet').textContent=(h<12?'Good morning':h<17?'Good afternoon':'Good evening')+', '+u.name.split(' ')[0]+' 👋';
-  updateDash();renderTasks();renderNotes();updateProf();checkBanner();
-  const k=ld('sm_oai','');if(k){$('key-stat').textContent='✅ Key saved.';$('key-stat').style.color='var(--teal)';}
+  updateDash();renderTasks();renderNotes();updateProf();
 }
 
 // ════════ NAVIGATION ════════
@@ -757,10 +709,9 @@ function setChip(el){$('chat-in').value=el.textContent;$('chat-in').focus();}
 
 async function sendChat(){
   const inp=$('chat-in'),text=inp.value.trim();if(!text)return;
-  const apiKey=ld('sm_oai','');
-  if(!apiKey){
-    toast('Add OpenAI key in ⚙️ Settings ❌');
-    goTo('settings',null);return;
+  const apiKey=CONFIG.OPENAI_API_KEY;
+  if(!apiKey||apiKey==='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'){
+    toast('Developer: set OPENAI_API_KEY in CONFIG ❌');return;
   }
   inp.value='';
   addMsg('user',esc(text));
@@ -786,7 +737,7 @@ async function sendChat(){
     if(S.chat.length>20)S.chat=S.chat.slice(-20);
   }catch(e){
     $(tid)?.remove();
-    const msg=e.message.includes('401')||e.message.includes('API key')?'Invalid API key. Check ⚙️ Settings.':'Error: '+e.message;
+    const msg=e.message.includes('401')||e.message.includes('API key')?'Invalid OpenAI API key — check CONFIG in code.':'Error: '+e.message;
     addMsg('bot',msg);toast('AI error ❌');
   }
   $('chat-btn').disabled=false;
