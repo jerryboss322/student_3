@@ -6,654 +6,481 @@
 <title>StudyMate — Your Academic Companion</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
-  :root {
-    --bg: #070710;
-    --surface: #0f0f1a;
-    --card: #14141f;
-    --card2: #1a1a2e;
-    --border: #ffffff12;
-    --border2: #ffffff1e;
-    --accent: #7c6af7;
-    --accent2: #a78bfa;
-    --teal: #2dd4bf;
-    --coral: #f87171;
-    --gold: #fbbf24;
-    --pink: #ec4899;
-    --text: #f0f0fa;
-    --muted: #6b6b8f;
-    --glow: #7c6af733;
-  }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    overflow-x: hidden;
-    min-height: 100vh;
-  }
-  ::-webkit-scrollbar { width: 5px; }
-  ::-webkit-scrollbar-track { background: var(--surface); }
-  ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
+:root{--bg:#070710;--surface:#0f0f1a;--card:#14141f;--card2:#1a1a2e;--border:#ffffff12;--border2:#ffffff1e;--accent:#7c6af7;--accent2:#a78bfa;--teal:#2dd4bf;--coral:#f87171;--gold:#fbbf24;--text:#f0f0fa;--muted:#6b6b8f;--glow:#7c6af733}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow-x:hidden;min-height:100vh}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--surface)}::-webkit-scrollbar-thumb{background:var(--accent);border-radius:3px}
+#bg-canvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.app{position:relative;z-index:1;display:flex;min-height:100vh}
 
-  /* ── Canvas BG ── */
-  #bg-canvas {
-    position: fixed; inset: 0;
-    width: 100%; height: 100%;
-    pointer-events: none; z-index: 0;
-  }
+/* SIDEBAR */
+.sidebar{width:220px;min-height:100vh;background:var(--surface);border-right:1px solid var(--border);padding:24px 12px;display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;z-index:200;backdrop-filter:blur(24px);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.sidebar-logo{display:flex;align-items:center;gap:10px;font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--accent2);letter-spacing:-.5px;margin-bottom:32px;padding:0 8px}
+.logo-gem{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--teal));box-shadow:0 0 20px var(--glow);animation:gemPulse 3s ease-in-out infinite;flex-shrink:0}
+@keyframes gemPulse{0%,100%{box-shadow:0 0 16px var(--glow)}50%{box-shadow:0 0 36px #7c6af766}}
+.nav-link{display:flex;align-items:center;gap:11px;padding:11px 14px;border-radius:12px;cursor:pointer;font-size:14px;font-weight:500;color:var(--muted);transition:all .18s;margin-bottom:2px;border:1px solid transparent;user-select:none}
+.nav-link:hover{background:var(--card2);color:var(--text)}
+.nav-link.active{background:var(--glow);color:var(--accent2);border-color:var(--accent)33}
+.nav-icon{font-size:17px;width:22px;text-align:center}
+.nav-badge{margin-left:auto;background:var(--coral);color:white;font-size:10px;font-weight:700;border-radius:10px;padding:2px 6px;min-width:18px;text-align:center}
+.sidebar-user{margin-top:auto;padding:14px;border-radius:14px;background:var(--glow);border:1px solid var(--accent)33}
+.sidebar-user-name{font-size:13px;font-weight:600;color:var(--text)}
+.sidebar-user-email{font-size:11px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-  /* ── App Shell ── */
-  .app { position: relative; z-index: 1; display: flex; min-height: 100vh; }
+.main{margin-left:220px;flex:1;padding:36px 32px}
+.page{display:none;animation:pageIn .35s ease}
+.page.active{display:block}
+@keyframes pageIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 
-  /* ── Sidebar ── */
-  .sidebar {
-    width: 220px; min-height: 100vh;
-    background: var(--surface);
-    border-right: 1px solid var(--border);
-    padding: 24px 12px;
-    display: flex; flex-direction: column;
-    position: fixed; left: 0; top: 0; bottom: 0;
-    z-index: 200;
-    backdrop-filter: blur(24px);
-    transition: transform .3s cubic-bezier(.4,0,.2,1);
-  }
-  .sidebar-logo {
-    display: flex; align-items: center; gap: 10px;
-    font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800;
-    color: var(--accent2); letter-spacing: -.5px;
-    margin-bottom: 32px; padding: 0 8px;
-  }
-  .logo-gem {
-    width: 30px; height: 30px; border-radius: 8px;
-    background: linear-gradient(135deg, var(--accent), var(--teal));
-    box-shadow: 0 0 20px var(--glow);
-    animation: gemPulse 3s ease-in-out infinite;
-    flex-shrink: 0;
-  }
-  @keyframes gemPulse {
-    0%,100%{box-shadow:0 0 16px var(--glow);}
-    50%{box-shadow:0 0 36px #7c6af766;}
-  }
-  .nav-link {
-    display: flex; align-items: center; gap: 11px;
-    padding: 11px 14px; border-radius: 12px; cursor: pointer;
-    font-size: 14px; font-weight: 500; color: var(--muted);
-    transition: all .18s; margin-bottom: 2px; border: 1px solid transparent;
-    user-select: none;
-  }
-  .nav-link:hover { background: var(--card2); color: var(--text); }
-  .nav-link.active { background: var(--glow); color: var(--accent2); border-color: var(--accent)33; }
-  .nav-icon { font-size: 17px; width: 22px; text-align: center; }
-  .nav-badge {
-    margin-left: auto; background: var(--coral);
-    color: white; font-size: 10px; font-weight: 700;
-    border-radius: 10px; padding: 2px 6px; min-width: 18px; text-align: center;
-  }
-  .sidebar-user {
-    margin-top: auto;
-    padding: 14px; border-radius: 14px;
-    background: var(--glow); border: 1px solid var(--accent)33;
-  }
-  .sidebar-user-name { font-size: 13px; font-weight: 600; color: var(--text); }
-  .sidebar-user-email { font-size: 11px; color: var(--muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* AUTH */
+.auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.auth-box{width:100%;max-width:420px;background:var(--card);border:1px solid var(--border2);border-radius:24px;padding:40px;box-shadow:0 32px 80px #00000060;animation:pageIn .5s ease}
+.auth-logo{display:flex;align-items:center;gap:10px;margin-bottom:24px}
+.auth-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;margin-bottom:6px;background:linear-gradient(135deg,var(--text),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.auth-sub{font-size:13px;color:var(--muted);margin-bottom:24px}
+.auth-steps{display:flex;gap:8px;margin-bottom:24px}
+.auth-step{flex:1;height:3px;border-radius:3px;background:var(--border2);transition:background .4s}
+.auth-step.done{background:var(--accent)}
 
-  /* ── Main ── */
-  .main { margin-left: 220px; flex: 1; padding: 36px 32px; }
+/* OTP */
+.otp-row{display:flex;gap:10px;justify-content:center;margin-bottom:20px}
+.otp-box{width:50px;height:58px;text-align:center;font-size:22px;font-weight:700;font-family:'Syne',sans-serif;background:var(--surface);color:var(--text);border:2px solid var(--border2);border-radius:12px;outline:none;transition:border-color .2s,box-shadow .2s}
+.otp-box:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--glow)}
+.otp-box.filled{border-color:var(--accent)66}
 
-  /* ── Pages ── */
-  .page { display: none; animation: pageIn .35s ease; }
-  .page.active { display: block; }
-  @keyframes pageIn {
-    from { opacity: 0; transform: translateY(16px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+/* FORMS */
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.input{width:100%;padding:12px 16px;background:var(--surface);color:var(--text);border:1px solid var(--border2);border-radius:12px;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s,box-shadow .2s}
+.input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--glow)}
+.input::placeholder{color:var(--muted)}
+select.input{appearance:none;cursor:pointer}
 
-  /* ── Auth ── */
-  .auth-screen {
-    min-height: 100vh; display: flex;
-    align-items: center; justify-content: center; padding: 24px;
-  }
-  .auth-box {
-    width: 100%; max-width: 400px;
-    background: var(--card); border: 1px solid var(--border2);
-    border-radius: 24px; padding: 40px;
-    box-shadow: 0 32px 80px #00000060;
-    animation: pageIn .5s ease;
-  }
-  .auth-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
-  .auth-title { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800; margin-bottom: 6px; background: linear-gradient(135deg, var(--text), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-  .auth-sub { font-size: 14px; color: var(--muted); margin-bottom: 28px; }
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 20px;border-radius:11px;border:none;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .18s;position:relative;overflow:hidden;white-space:nowrap}
+.btn::after{content:'';position:absolute;inset:0;background:white;opacity:0;transition:opacity .15s}
+.btn:hover::after{opacity:.07}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
+.btn-primary{background:var(--accent);color:white;box-shadow:0 4px 20px var(--glow)}
+.btn-teal{background:var(--teal);color:#000}
+.btn-coral{background:var(--coral);color:white}
+.btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--muted)}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent2)}
+.btn-sm{padding:7px 13px;font-size:12px;border-radius:8px}
+.btn-full{width:100%;padding:14px;font-size:15px}
+.btn-icon{padding:8px;width:34px;height:34px;border-radius:8px}
 
-  /* ── Forms ── */
-  .form-group { margin-bottom: 14px; }
-  .form-label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .5px; }
-  .input {
-    width: 100%; padding: 12px 16px;
-    background: var(--surface); color: var(--text);
-    border: 1px solid var(--border2); border-radius: 12px;
-    font-size: 14px; font-family: 'DM Sans', sans-serif;
-    outline: none; transition: border-color .2s, box-shadow .2s;
-  }
-  .input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--glow); }
-  .input::placeholder { color: var(--muted); }
-  select.input { appearance: none; cursor: pointer; }
+/* PAGE HEADER */
+.ph{margin-bottom:28px}
+.ph-title{font-family:'Syne',sans-serif;font-size:30px;font-weight:800;background:linear-gradient(120deg,var(--text) 40%,var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.ph-sub{font-size:13px;color:var(--muted);margin-top:4px}
 
-  /* ── Buttons ── */
-  .btn {
-    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
-    padding: 11px 20px; border-radius: 11px; border: none;
-    font-size: 14px; font-weight: 600; font-family: 'DM Sans', sans-serif;
-    cursor: pointer; transition: all .18s; position: relative; overflow: hidden;
-    white-space: nowrap;
-  }
-  .btn::after { content: ''; position: absolute; inset: 0; background: white; opacity: 0; transition: opacity .15s; }
-  .btn:hover::after { opacity: .07; }
-  .btn:active { transform: scale(.97); }
-  .btn-primary { background: var(--accent); color: white; box-shadow: 0 4px 20px var(--glow); }
-  .btn-primary:hover { box-shadow: 0 6px 28px #7c6af755; }
-  .btn-teal { background: var(--teal); color: #000; }
-  .btn-coral { background: var(--coral); color: white; }
-  .btn-ghost { background: transparent; border: 1px solid var(--border2); color: var(--muted); }
-  .btn-ghost:hover { border-color: var(--accent); color: var(--accent2); }
-  .btn-sm { padding: 7px 13px; font-size: 12px; border-radius: 8px; }
-  .btn-full { width: 100%; padding: 14px; font-size: 15px; }
-  .btn-icon { padding: 8px; width: 34px; height: 34px; border-radius: 8px; }
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:22px;transition:border-color .2s,box-shadow .2s;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--accent)07 0%,transparent 55%);pointer-events:none}
+.card:hover{border-color:var(--accent)33;box-shadow:0 8px 30px #00000040}
+.card-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px}
 
-  /* ── Page Header ── */
-  .ph { margin-bottom: 28px; }
-  .ph-title { font-family: 'Syne', sans-serif; font-size: 30px; font-weight: 800; background: linear-gradient(120deg, var(--text) 40%, var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-  .ph-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+/* GRIDS */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
 
-  /* ── Cards ── */
-  .card {
-    background: var(--card); border: 1px solid var(--border);
-    border-radius: 18px; padding: 22px;
-    transition: border-color .2s, box-shadow .2s, transform .2s;
-    position: relative; overflow: hidden;
-  }
-  .card::before {
-    content: ''; position: absolute; inset: 0;
-    background: linear-gradient(135deg, var(--accent)07 0%, transparent 55%);
-    pointer-events: none;
-  }
-  .card:hover { border-color: var(--accent)33; box-shadow: 0 8px 30px #00000040; }
-  .card-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+/* STAT CARDS */
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;text-align:center;position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s}
+.stat-card:hover{transform:translateY(-4px);box-shadow:0 12px 40px #00000050}
+.stat-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;border-radius:0 0 16px 16px}
+.s-accent::after{background:var(--accent)}.s-teal::after{background:var(--teal)}.s-coral::after{background:var(--coral)}.s-gold::after{background:var(--gold)}
+.stat-num{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;line-height:1}
+.stat-lbl{font-size:11px;color:var(--muted);margin-top:5px;text-transform:uppercase;letter-spacing:.8px}
 
-  /* ── Grid ── */
-  .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-  .g3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
-  .g4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+/* TASKS */
+.task-item{display:flex;align-items:center;gap:11px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px 15px;transition:border-color .15s;margin-bottom:8px;animation:slideIn .25s ease}
+@keyframes slideIn{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:translateX(0)}}
+.task-item:hover{border-color:var(--accent)33}
+.task-item.done{opacity:.45}
+.task-item.done .task-name{text-decoration:line-through}
+.task-check{width:21px;height:21px;border-radius:50%;border:2px solid var(--border2);cursor:pointer;transition:all .2s;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:white}
+.task-check.on{background:var(--teal);border-color:var(--teal)}
+.task-prio{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.task-name{flex:1;font-size:14px}
+.task-meta{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;flex-shrink:0}
+.task-meta.late{color:var(--coral)}
 
-  /* ── Stat Cards ── */
-  .stat-card {
-    background: var(--card); border: 1px solid var(--border);
-    border-radius: 16px; padding: 20px; text-align: center;
-    position: relative; overflow: hidden; transition: transform .2s, box-shadow .2s;
-  }
-  .stat-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px #00000050; }
-  .stat-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; border-radius: 0 0 16px 16px; }
-  .s-accent::after { background: var(--accent); }
-  .s-teal::after { background: var(--teal); }
-  .s-coral::after { background: var(--coral); }
-  .s-gold::after { background: var(--gold); }
-  .stat-num { font-family: 'Syne', sans-serif; font-size: 36px; font-weight: 800; line-height: 1; }
-  .stat-lbl { font-size: 11px; color: var(--muted); margin-top: 5px; text-transform: uppercase; letter-spacing: .8px; }
+/* TIMETABLE */
+.tt-wrap{overflow-x:auto}
+.tt{display:grid;grid-template-columns:72px repeat(7,1fr);gap:2px;background:var(--border);border-radius:12px;overflow:hidden;min-width:600px}
+.tt-h{background:var(--surface);padding:10px 6px;font-size:11px;font-weight:700;color:var(--accent2);text-align:center;text-transform:uppercase;letter-spacing:.5px}
+.tt-t{background:var(--surface);padding:10px 6px;font-size:11px;color:var(--muted);text-align:center}
+.tt-c{background:var(--surface);padding:8px 4px;font-size:10px;text-align:center;min-height:38px;display:flex;align-items:center;justify-content:center;font-weight:500}
 
-  /* ── Tasks ── */
-  .task-item {
-    display: flex; align-items: center; gap: 11px;
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; padding: 13px 15px;
-    transition: border-color .15s; margin-bottom: 8px;
-    animation: slideInLeft .25s ease;
-  }
-  @keyframes slideInLeft { from{opacity:0;transform:translateX(-16px)} to{opacity:1;transform:translateX(0)} }
-  .task-item:hover { border-color: var(--accent)33; }
-  .task-item.done { opacity: .45; }
-  .task-item.done .task-name { text-decoration: line-through; }
-  .task-check {
-    width: 21px; height: 21px; border-radius: 50%;
-    border: 2px solid var(--border2); cursor: pointer;
-    transition: all .2s; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 11px; color: white;
-  }
-  .task-check.on { background: var(--teal); border-color: var(--teal); }
-  .task-prio { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-  .task-name { flex: 1; font-size: 14px; }
-  .task-meta { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-  .task-meta.late { color: var(--coral); }
+/* NOTES */
+.notes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px}
+.note-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;text-align:center;cursor:pointer;transition:all .2s;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.note-card:hover{border-color:var(--accent)44;transform:translateY(-3px);box-shadow:0 8px 24px #00000050}
+.note-icon-big{font-size:34px;margin-bottom:10px}
+.note-fname{font-size:12px;font-weight:500;word-break:break-all;margin-bottom:3px}
+.note-fsize{font-size:11px;color:var(--muted)}
 
-  /* ── Timetable ── */
-  .tt-wrap { overflow-x: auto; }
-  .tt {
-    display: grid; grid-template-columns: 72px repeat(7,1fr);
-    gap: 2px; background: var(--border); border-radius: 12px; overflow: hidden;
-    min-width: 600px;
-  }
-  .tt-h { background: var(--surface); padding: 10px 6px; font-size: 11px; font-weight: 700; color: var(--accent2); text-align: center; text-transform: uppercase; letter-spacing: .5px; }
-  .tt-t { background: var(--surface); padding: 10px 6px; font-size: 11px; color: var(--muted); text-align: center; }
-  .tt-c { background: var(--surface); padding: 8px 4px; font-size: 10px; text-align: center; min-height: 38px; display: flex; align-items: center; justify-content: center; font-weight: 500; }
+/* UPLOAD */
+.dropzone{border:2px dashed var(--border2);border-radius:16px;padding:40px 24px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:20px}
+.dropzone:hover,.dropzone.dragging{border-color:var(--accent);background:var(--glow)}
+.dz-icon{font-size:38px;margin-bottom:10px}
+.dz-text{font-weight:600;margin-bottom:4px}
+.dz-hint{font-size:13px;color:var(--muted)}
 
-  /* ── Notes ── */
-  .notes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px,1fr)); gap: 14px; }
-  .note-card {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 16px; padding: 18px; text-align: center;
-    cursor: pointer; transition: all .2s; animation: fadeUp .3s ease;
-  }
-  @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
-  .note-card:hover { border-color: var(--accent)44; transform: translateY(-3px); box-shadow: 0 8px 24px #00000050; }
-  .note-icon-big { font-size: 34px; margin-bottom: 10px; }
-  .note-fname { font-size: 12px; font-weight: 500; word-break: break-all; margin-bottom: 3px; }
-  .note-fsize { font-size: 11px; color: var(--muted); }
+/* AI CHAT */
+.chat-area{display:flex;flex-direction:column;gap:12px;max-height:380px;overflow-y:auto;margin-bottom:16px;padding-right:4px}
+.msg{display:flex;gap:10px;animation:slideIn .25s ease}
+.msg.user{flex-direction:row-reverse}
+.msg-av{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px}
+.msg.bot .msg-av{background:linear-gradient(135deg,#10a37f,#1dd1a1)}
+.msg.user .msg-av{background:var(--card2);border:1px solid var(--border2)}
+.msg-bubble{max-width:78%;padding:11px 15px;font-size:14px;line-height:1.55;border-radius:16px}
+.msg.user .msg-bubble{background:var(--accent);color:white;border-radius:16px 16px 4px 16px}
+.msg.bot .msg-bubble{background:var(--surface);border:1px solid var(--border2);border-radius:16px 16px 16px 4px;white-space:pre-wrap}
+.dots span{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--muted);margin:0 2px;animation:dot .7s ease infinite}
+.dots span:nth-child(2){animation-delay:.15s}.dots span:nth-child(3){animation-delay:.3s}
+@keyframes dot{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}
+.quick-chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.chip{padding:5px 12px;border-radius:20px;border:1px solid var(--border2);font-size:12px;color:var(--muted);cursor:pointer;transition:all .15s}
+.chip:hover{border-color:var(--accent);color:var(--accent2)}
 
-  /* ── Upload ── */
-  .dropzone {
-    border: 2px dashed var(--border2); border-radius: 16px;
-    padding: 40px 24px; text-align: center; cursor: pointer;
-    transition: all .2s; margin-bottom: 20px;
-  }
-  .dropzone:hover, .dropzone.dragging { border-color: var(--accent); background: var(--glow); }
-  .dz-icon { font-size: 38px; margin-bottom: 10px; }
-  .dz-text { font-weight: 600; margin-bottom: 4px; }
-  .dz-hint { font-size: 13px; color: var(--muted); }
+/* API BANNER */
+.api-banner{background:#10a37f18;border:1px solid #10a37f44;border-radius:14px;padding:14px 16px;margin-bottom:16px;font-size:13px;display:flex;align-items:flex-start;gap:10px}
+.api-banner-icon{font-size:20px;flex-shrink:0}
 
-  /* ── AI Chat ── */
-  .chat-area { display: flex; flex-direction: column; gap: 12px; max-height: 360px; overflow-y: auto; margin-bottom: 16px; padding-right: 4px; }
-  .msg { display: flex; gap: 10px; animation: slideInLeft .25s ease; }
-  .msg.user { flex-direction: row-reverse; }
-  .msg-avatar { width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; }
-  .msg.bot .msg-avatar { background: linear-gradient(135deg, var(--accent), var(--teal)); }
-  .msg.user .msg-avatar { background: var(--card2); border: 1px solid var(--border2); }
-  .msg-bubble { max-width: 78%; padding: 11px 15px; font-size: 14px; line-height: 1.55; border-radius: 16px; }
-  .msg.user .msg-bubble { background: var(--accent); color: white; border-radius: 16px 16px 4px 16px; }
-  .msg.bot .msg-bubble { background: var(--surface); border: 1px solid var(--border2); border-radius: 16px 16px 16px 4px; }
-  .dots span { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--muted); margin: 0 2px; animation: dot .7s ease infinite; }
-  .dots span:nth-child(2){animation-delay:.15s} .dots span:nth-child(3){animation-delay:.3s}
-  @keyframes dot{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}
-  .quick-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
-  .chip { padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border2); font-size: 12px; color: var(--muted); cursor: pointer; transition: all .15s; }
-  .chip:hover { border-color: var(--accent); color: var(--accent2); }
+/* RING */
+.ring-wrap{position:relative;display:inline-flex;align-items:center;justify-content:center}
+.ring-label{position:absolute;text-align:center}
+.ring-pct{font-family:'Syne',sans-serif;font-size:22px;font-weight:800}
+.ring-lbl{font-size:10px;color:var(--muted)}
 
-  /* ── Progress Ring ── */
-  .ring-wrap { position: relative; display: inline-flex; align-items: center; justify-content: center; }
-  .ring-label { position: absolute; text-align: center; }
-  .ring-pct { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; }
-  .ring-lbl { font-size: 10px; color: var(--muted); }
+/* CHART */
+.bar-chart{display:flex;align-items:flex-end;gap:10px;height:150px;padding:0 4px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;height:100%;justify-content:flex-end}
+.bar-fill{width:100%;border-radius:7px 7px 0 0;min-height:4px;position:relative;overflow:hidden;transition:height 1s cubic-bezier(.4,0,.2,1)}
+.bar-fill::after{content:'';position:absolute;top:0;left:0;right:0;height:45%;background:rgba(255,255,255,.08)}
+.bar-day{font-size:10px;color:var(--muted)}
+.bar-count{font-size:12px;font-weight:600;color:var(--accent2)}
 
-  /* ── Chart ── */
-  .bar-chart { display: flex; align-items: flex-end; gap: 10px; height: 150px; padding: 0 4px; }
-  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; height: 100%; justify-content: flex-end; }
-  .bar-fill { width: 100%; border-radius: 7px 7px 0 0; min-height: 4px; position: relative; overflow: hidden; transition: height 1s cubic-bezier(.4,0,.2,1); }
-  .bar-fill::after { content:''; position:absolute; top:0; left:0; right:0; height:45%; background: rgba(255,255,255,.08); border-radius: 7px 7px 0 0; }
-  .bar-day { font-size: 10px; color: var(--muted); }
-  .bar-count { font-size: 12px; font-weight: 600; color: var(--accent2); }
+/* PROFILE */
+.avatar-big{width:78px;height:78px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--teal));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:30px;font-weight:800;box-shadow:0 0 32px var(--glow);margin-bottom:12px;flex-shrink:0}
+.profile-stat{text-align:center;padding:14px;background:var(--surface);border-radius:12px}
+.profile-stat .val{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;line-height:1}
+.profile-stat .lbl{font-size:11px;color:var(--muted);margin-top:3px}
 
-  /* ── Profile Avatar ── */
-  .avatar-big {
-    width: 78px; height: 78px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent), var(--teal));
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Syne', sans-serif; font-size: 30px; font-weight: 800;
-    box-shadow: 0 0 32px var(--glow); margin-bottom: 12px; flex-shrink: 0;
-  }
+/* TOAST */
+#toast-container{position:fixed;bottom:22px;right:22px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{background:var(--card2);border:1px solid var(--border2);border-radius:12px;padding:12px 18px;font-size:13px;display:flex;align-items:center;gap:9px;box-shadow:0 8px 24px #00000060;min-width:230px;animation:toastIn .3s ease}
+@keyframes toastIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
 
-  /* ── Toast ── */
-  #toast-container { position: fixed; bottom: 22px; right: 22px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
-  .toast {
-    background: var(--card2); border: 1px solid var(--border2);
-    border-radius: 12px; padding: 12px 18px;
-    font-size: 13px; display: flex; align-items: center; gap: 9px;
-    box-shadow: 0 8px 24px #00000060; min-width: 230px;
-    animation: toastIn .3s ease;
-  }
-  @keyframes toastIn { from{opacity:0;transform:translateX(30px)} to{opacity:1;transform:translateX(0)} }
+/* MISC */
+.divider{height:1px;background:var(--border);margin:18px 0}
+.row{display:flex;align-items:center;gap:10px}
+.muted{color:var(--muted)}
+.mb8{margin-bottom:8px}.mb16{margin-bottom:16px}.mb24{margin-bottom:24px}
+.mt8{margin-top:8px}.mt16{margin-top:16px}
+.text-sm{font-size:13px}.text-xs{font-size:11px}
+.center{text-align:center}
+.flex-center{display:flex;align-items:center;justify-content:center}
+.link{color:var(--accent2);cursor:pointer;font-weight:500}
+.link:hover{text-decoration:underline}
+.pb-wrap{height:6px;background:var(--border2);border-radius:3px;overflow:hidden;margin-top:4px}
+.pb-fill{height:100%;border-radius:3px;transition:width 1s}
+.sub-tag{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:20px;font-size:12px;font-weight:600}
+.sub-tag .rem{font-size:14px;cursor:pointer;opacity:.7;line-height:1}
+.sub-tag .rem:hover{opacity:1}
+.settings-row{display:flex;gap:8px;margin-bottom:10px}
+.settings-row .input{flex:1}
+#ham-btn{display:none;position:fixed;top:16px;left:16px;z-index:300;background:var(--card);border:1px solid var(--border2);border-radius:10px;width:40px;height:40px;align-items:center;justify-content:center;cursor:pointer;font-size:18px}
 
-  /* ── Misc ── */
-  .divider { height: 1px; background: var(--border); margin: 18px 0; }
-  .pill { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-  .p-accent { background: var(--glow); color: var(--accent2); }
-  .p-teal { background: #2dd4bf22; color: var(--teal); }
-  .p-coral { background: #f8717122; color: var(--coral); }
-  .p-gold { background: #fbbf2422; color: var(--gold); }
-  .row { display: flex; align-items: center; gap: 10px; }
-  .gap-y > * + * { margin-top: 8px; }
-  .muted { color: var(--muted); }
-  .mb8 { margin-bottom: 8px; }
-  .mb16 { margin-bottom: 16px; }
-  .mb24 { margin-bottom: 24px; }
-  .mt16 { margin-top: 16px; }
-  .text-sm { font-size: 13px; }
-  .text-xs { font-size: 11px; }
-  .center { text-align: center; }
-  .flex-center { display: flex; align-items: center; justify-content: center; }
-  .link { color: var(--accent2); cursor: pointer; font-weight: 500; }
-  .link:hover { text-decoration: underline; }
-  .progress-bar-wrap { height: 6px; background: var(--border2); border-radius: 3px; overflow: hidden; margin-top: 4px; }
-  .progress-bar-fill { height: 100%; border-radius: 3px; transition: width 1s; }
-
-  /* ── Hamburger ── */
-  #ham-btn { display: none; position: fixed; top: 16px; left: 16px; z-index: 300; background: var(--card); border: 1px solid var(--border2); border-radius: 10px; width: 40px; height: 40px; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; }
-  @media(max-width:900px){
-    .sidebar { transform: translateX(-100%); }
-    .sidebar.open { transform: translateX(0); }
-    .main { margin-left: 0; padding: 24px 16px; }
-    .g2,.g3,.g4 { grid-template-columns: 1fr; }
-    #ham-btn { display: flex; }
-  }
-
-  /* ── Subject tags in timetable ── */
-  .sub-tag {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 5px 10px; border-radius: 20px; font-size: 12px;
-    font-weight: 600; cursor: pointer; transition: all .15s;
-  }
-  .sub-tag .rem { font-size: 14px; cursor: pointer; opacity: .7; line-height: 1; }
-  .sub-tag .rem:hover { opacity: 1; }
-
-  /* ─ Separator line in profile stats ─ */
-  .profile-stat { text-align: center; padding: 14px; background: var(--surface); border-radius: 12px; }
-  .profile-stat .val { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800; line-height: 1; }
-  .profile-stat .lbl { font-size: 11px; color: var(--muted); margin-top: 3px; }
+@media(max-width:900px){
+  .sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}
+  .main{margin-left:0;padding:24px 16px}
+  .g2,.g3,.g4{grid-template-columns:1fr}
+  #ham-btn{display:flex}
+}
 </style>
 </head>
 <body>
-
-<!-- Canvas BG -->
 <canvas id="bg-canvas"></canvas>
-
-<!-- Toast Container -->
 <div id="toast-container"></div>
-
-<!-- Hamburger -->
 <div id="ham-btn" onclick="toggleSidebar()">☰</div>
 
-<!-- ═══════════════════════════════════════════════════ AUTH ══ -->
+<!-- ══════════════ AUTH ══════════════ -->
 <div id="auth-screen" class="auth-screen">
   <div class="auth-box">
     <div class="auth-logo">
       <div class="logo-gem"></div>
       <span style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--accent2)">StudyMate</span>
     </div>
-    <div id="auth-title" class="auth-title">Welcome back</div>
-    <div id="auth-sub" class="auth-sub">Log in to continue your journey</div>
+    <div class="auth-steps">
+      <div class="auth-step done" id="si1"></div>
+      <div class="auth-step" id="si2"></div>
+      <div class="auth-step" id="si3"></div>
+    </div>
 
-    <div id="auth-name-group" class="form-group" style="display:none">
-      <label class="form-label">Full Name</label>
-      <input id="auth-name" class="input" placeholder="Alex Johnson" />
+    <!-- Step 1: Email -->
+    <div id="s1">
+      <div class="auth-title">Welcome 👋</div>
+      <div class="auth-sub">Enter your email to get started — we'll send a verification code</div>
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input id="a-email" class="input" type="email" placeholder="you@university.edu" onkeydown="if(event.key==='Enter')s1go()"/>
+      </div>
+      <button class="btn btn-primary btn-full mt16" onclick="s1go()" id="s1btn">Continue →</button>
     </div>
-    <div class="form-group">
-      <label class="form-label">Email</label>
-      <input id="auth-email" class="input" type="email" placeholder="alex@university.edu" />
+
+    <!-- Step 2: OTP -->
+    <div id="s2" style="display:none">
+      <div class="auth-title">Check your inbox 📬</div>
+      <div class="auth-sub">6-digit code sent to <strong id="otp-dest"></strong></div>
+      <div class="otp-row">
+        <input class="otp-box" maxlength="1" id="ob0" oninput="oi(0)" onkeydown="ok(event,0)"/>
+        <input class="otp-box" maxlength="1" id="ob1" oninput="oi(1)" onkeydown="ok(event,1)"/>
+        <input class="otp-box" maxlength="1" id="ob2" oninput="oi(2)" onkeydown="ok(event,2)"/>
+        <input class="otp-box" maxlength="1" id="ob3" oninput="oi(3)" onkeydown="ok(event,3)"/>
+        <input class="otp-box" maxlength="1" id="ob4" oninput="oi(4)" onkeydown="ok(event,4)"/>
+        <input class="otp-box" maxlength="1" id="ob5" oninput="oi(5)" onkeydown="ok(event,5)"/>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="verifyOTP()" id="otp-btn">✅ Verify Code</button>
+      <div class="center mt16 text-sm">
+        <span class="muted">No code? </span>
+        <span class="link" id="resend-lnk" onclick="resendOTP()">Resend</span>
+        <span class="muted" id="resend-tmr" style="display:none"> in <span id="cntdown">60</span>s</span>
+      </div>
+      <div class="center mt8"><span class="link text-xs" onclick="backToS1()">← Change email</span></div>
     </div>
-    <div class="form-group" style="margin-bottom:22px">
-      <label class="form-label">Password</label>
-      <input id="auth-pass" class="input" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')authSubmit()" />
+
+    <!-- Step 3a: New user password setup -->
+    <div id="s3" style="display:none">
+      <div class="auth-title">Create your account ✨</div>
+      <div class="auth-sub">Email verified! Set up your profile</div>
+      <div class="form-group"><label class="form-label">Full Name</label><input id="a-name" class="input" placeholder="Alex Johnson" onkeydown="if(event.key==='Enter')s3go()"/></div>
+      <div class="form-group"><label class="form-label">Password</label><input id="a-pass" class="input" type="password" placeholder="Min 6 characters" onkeydown="if(event.key==='Enter')s3go()"/></div>
+      <button class="btn btn-primary btn-full mt16" onclick="s3go()">🚀 Create Account</button>
     </div>
-    <button class="btn btn-primary btn-full" onclick="authSubmit()">
-      <span id="auth-btn-text">🚀 Sign In</span>
-    </button>
-    <div class="center mt16 text-sm muted">
-      <span id="auth-switch-text">Don't have an account?</span>
-      <span class="link" onclick="toggleAuthMode()" id="auth-switch-link" style="margin-left:4px">Sign up</span>
+
+    <!-- Step 3b: Returning user login -->
+    <div id="s3b" style="display:none">
+      <div class="auth-title">Welcome back! 👋</div>
+      <div class="auth-sub">Email verified. Enter your password to continue</div>
+      <div class="form-group"><label class="form-label">Password</label><input id="a-rpass" class="input" type="password" placeholder="Your password" onkeydown="if(event.key==='Enter')s3bgo()"/></div>
+      <button class="btn btn-primary btn-full mt16" onclick="s3bgo()">🚀 Sign In</button>
+      <div class="center mt8"><span class="link text-xs" onclick="backToS1()">← Change email</span></div>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════ MAIN APP ══ -->
+<!-- ══════════════ MAIN APP ══════════════ -->
 <div id="main-app" class="app" style="display:none">
-  <!-- Sidebar -->
   <nav class="sidebar" id="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-gem"></div>
-      StudyMate
-    </div>
-    <div class="nav-link active" data-page="dashboard" onclick="goTo('dashboard',this)"><span class="nav-icon">🏠</span> Dashboard</div>
-    <div class="nav-link" data-page="tasks" onclick="goTo('tasks',this)"><span class="nav-icon">📝</span> Tasks <span id="pending-badge" class="nav-badge" style="display:none"></span></div>
-    <div class="nav-link" data-page="timetable" onclick="goTo('timetable',this)"><span class="nav-icon">📅</span> Timetable</div>
-    <div class="nav-link" data-page="notes" onclick="goTo('notes',this)"><span class="nav-icon">📂</span> Notes</div>
-    <div class="nav-link" data-page="ai" onclick="goTo('ai',this)"><span class="nav-icon">🤖</span> AI Assistant</div>
-    <div class="nav-link" data-page="profile" onclick="goTo('profile',this)"><span class="nav-icon">👤</span> Profile</div>
-
-    <div class="sidebar-user" id="sidebar-user">
+    <div class="sidebar-logo"><div class="logo-gem"></div>StudyMate</div>
+    <div class="nav-link active" onclick="goTo('dashboard',this)"><span class="nav-icon">🏠</span>Dashboard</div>
+    <div class="nav-link" onclick="goTo('tasks',this)"><span class="nav-icon">📝</span>Tasks<span id="pending-badge" class="nav-badge" style="display:none"></span></div>
+    <div class="nav-link" onclick="goTo('timetable',this)"><span class="nav-icon">📅</span>Timetable</div>
+    <div class="nav-link" onclick="goTo('notes',this)"><span class="nav-icon">📂</span>Notes</div>
+    <div class="nav-link" onclick="goTo('ai',this)"><span class="nav-icon">🤖</span>AI Assistant</div>
+    <div class="nav-link" onclick="goTo('settings',this)"><span class="nav-icon">⚙️</span>Settings</div>
+    <div class="nav-link" onclick="goTo('profile',this)"><span class="nav-icon">👤</span>Profile</div>
+    <div class="sidebar-user">
       <div class="sidebar-user-name" id="sb-name">—</div>
       <div class="sidebar-user-email" id="sb-email">—</div>
     </div>
   </nav>
 
-  <!-- Main -->
   <main class="main">
 
-    <!-- ─── DASHBOARD ─── -->
+    <!-- DASHBOARD -->
     <div class="page active" id="page-dashboard">
-      <div class="ph">
-        <div class="ph-title" id="dash-greeting">Good morning 👋</div>
-        <div class="ph-sub">Here's your academic overview</div>
-      </div>
-
-      <div class="g4 mb24" id="stat-grid">
+      <div class="ph"><div class="ph-title" id="dash-greet">Good day 👋</div><div class="ph-sub">Your academic overview</div></div>
+      <div class="g4 mb24">
         <div class="stat-card s-accent"><div class="stat-num" id="st-total" style="color:var(--accent)">0</div><div class="stat-lbl">Total Tasks</div></div>
         <div class="stat-card s-teal"><div class="stat-num" id="st-done" style="color:var(--teal)">0</div><div class="stat-lbl">Completed</div></div>
-        <div class="stat-card s-coral"><div class="stat-num" id="st-pending" style="color:var(--coral)">0</div><div class="stat-lbl">Pending</div></div>
+        <div class="stat-card s-coral"><div class="stat-num" id="st-pend" style="color:var(--coral)">0</div><div class="stat-lbl">Pending</div></div>
         <div class="stat-card s-gold"><div class="stat-num" id="st-notes" style="color:var(--gold)">0</div><div class="stat-lbl">Notes Saved</div></div>
       </div>
-
       <div class="g2 mb24">
         <div class="card">
           <div class="card-title">📊 Completion Progress</div>
           <div class="row" style="gap:24px">
             <div class="ring-wrap">
-              <svg id="ring-svg" width="110" height="110" style="transform:rotate(-90deg)">
+              <svg width="110" height="110" style="transform:rotate(-90deg)">
                 <circle cx="55" cy="55" r="44" fill="none" stroke="var(--border2)" stroke-width="10"/>
-                <circle id="ring-fill" cx="55" cy="55" r="44" fill="none" stroke="var(--accent)" stroke-width="10"
-                  stroke-dasharray="276.46" stroke-dashoffset="276.46"
-                  stroke-linecap="round" style="transition:stroke-dashoffset 1s cubic-bezier(.4,0,.2,1)"/>
+                <circle id="ring-fill" cx="55" cy="55" r="44" fill="none" stroke="var(--accent)" stroke-width="10" stroke-dasharray="276.46" stroke-dashoffset="276.46" stroke-linecap="round" style="transition:stroke-dashoffset 1s cubic-bezier(.4,0,.2,1)"/>
               </svg>
-              <div class="ring-label">
-                <div class="ring-pct" id="ring-pct" style="color:var(--accent)">0%</div>
-                <div class="ring-lbl">Done</div>
-              </div>
+              <div class="ring-label"><div class="ring-pct" id="ring-pct" style="color:var(--accent)">0%</div><div class="ring-lbl">Done</div></div>
             </div>
             <div style="flex:1">
-              <div class="mb8">
-                <div class="row text-sm" style="justify-content:space-between;margin-bottom:4px"><span>Completed</span><span id="pb-done" style="color:var(--teal)">0</span></div>
-                <div class="progress-bar-wrap"><div class="progress-bar-fill" id="pb-done-bar" style="background:var(--teal);width:0%"></div></div>
-              </div>
-              <div>
-                <div class="row text-sm" style="justify-content:space-between;margin-bottom:4px"><span>Pending</span><span id="pb-pend" style="color:var(--coral)">0</span></div>
-                <div class="progress-bar-wrap"><div class="progress-bar-fill" id="pb-pend-bar" style="background:var(--coral);width:0%"></div></div>
-              </div>
+              <div class="mb8"><div class="row text-sm" style="justify-content:space-between;margin-bottom:4px"><span>Completed</span><span id="pb-d" style="color:var(--teal)">0</span></div><div class="pb-wrap"><div class="pb-fill" id="pb-db" style="background:var(--teal);width:0%"></div></div></div>
+              <div><div class="row text-sm" style="justify-content:space-between;margin-bottom:4px"><span>Pending</span><span id="pb-p" style="color:var(--coral)">0</span></div><div class="pb-wrap"><div class="pb-fill" id="pb-pb" style="background:var(--coral);width:0%"></div></div></div>
             </div>
           </div>
         </div>
-
-        <div class="card">
-          <div class="card-title">📅 Tasks by Deadline Day</div>
-          <div class="bar-chart" id="bar-chart">
-            <!-- JS fills this -->
-          </div>
-        </div>
+        <div class="card"><div class="card-title">📅 Tasks by Day</div><div class="bar-chart" id="bar-chart"></div></div>
       </div>
-
-      <div class="card">
-        <div class="card-title">🔥 Recent Tasks</div>
-        <div id="recent-tasks"><div class="muted text-sm">No tasks yet — add some in the Tasks tab!</div></div>
-      </div>
+      <div class="card"><div class="card-title">🔥 Recent Tasks</div><div id="recent-tasks"><div class="muted text-sm">No tasks yet!</div></div></div>
     </div>
 
-    <!-- ─── TASKS ─── -->
+    <!-- TASKS -->
     <div class="page" id="page-tasks">
-      <div class="ph">
-        <div class="ph-title">📝 Task Manager</div>
-        <div class="ph-sub">Organize your assignments and deadlines</div>
-      </div>
-
+      <div class="ph"><div class="ph-title">📝 Task Manager</div><div class="ph-sub">Organize your assignments and deadlines</div></div>
       <div class="card mb24">
-        <div class="card-title" id="task-form-title">➕ Add New Task</div>
+        <div class="card-title" id="tf-title">➕ Add New Task</div>
         <div class="g2" style="gap:12px;margin-bottom:12px">
-          <div><label class="form-label">Task Title</label><input id="t-title" class="input" placeholder="e.g. Write essay on Shakespeare…" /></div>
-          <div><label class="form-label">Deadline</label><input id="t-deadline" class="input" type="date" /></div>
+          <div><label class="form-label">Title</label><input id="tt-t" class="input" placeholder="e.g. Write essay on Shakespeare…"/></div>
+          <div><label class="form-label">Deadline</label><input id="tt-d" class="input" type="date"/></div>
         </div>
         <div class="g2" style="gap:12px;margin-bottom:16px">
-          <div><label class="form-label">Subject (optional)</label><input id="t-subject" class="input" placeholder="e.g. English Literature" /></div>
+          <div><label class="form-label">Subject</label><input id="tt-s" class="input" placeholder="e.g. English Literature"/></div>
           <div><label class="form-label">Priority</label>
-            <select id="t-priority" class="input">
-              <option value="high">🔴 High</option>
-              <option value="medium" selected>🟡 Medium</option>
-              <option value="low">🟢 Low</option>
-            </select>
+            <select id="tt-p" class="input"><option value="high">🔴 High</option><option value="medium" selected>🟡 Medium</option><option value="low">🟢 Low</option></select>
           </div>
         </div>
         <div class="row">
-          <button class="btn btn-primary" onclick="saveTask()"><span id="task-btn-txt">➕ Add Task</span></button>
-          <button class="btn btn-ghost" id="cancel-edit-btn" style="display:none" onclick="cancelEditTask()">Cancel</button>
+          <button class="btn btn-primary" onclick="saveTask()"><span id="tbtn">➕ Add Task</span></button>
+          <button class="btn btn-ghost" id="tcancel" style="display:none" onclick="cancelEdit()">Cancel</button>
         </div>
       </div>
-
       <div class="row mb16">
-        <button class="btn btn-ghost btn-sm" id="f-all" onclick="setFilter('all',this)" style="border-color:var(--accent);color:var(--accent2)">All</button>
-        <button class="btn btn-ghost btn-sm" id="f-pending" onclick="setFilter('pending',this)">Pending</button>
-        <button class="btn btn-ghost btn-sm" id="f-done" onclick="setFilter('done',this)">Completed</button>
-        <span class="muted text-xs" style="margin-left:auto" id="task-count">0 tasks</span>
+        <button class="btn btn-ghost btn-sm" onclick="setFilter('all',this)" style="border-color:var(--accent);color:var(--accent2)">All</button>
+        <button class="btn btn-ghost btn-sm" onclick="setFilter('pending',this)">Pending</button>
+        <button class="btn btn-ghost btn-sm" onclick="setFilter('done',this)">Completed</button>
+        <span class="muted text-xs" style="margin-left:auto" id="tcnt">0 tasks</span>
       </div>
-
-      <div id="task-list"><div class="center muted text-sm" style="padding:40px">No tasks here yet!</div></div>
+      <div id="task-list"></div>
     </div>
 
-    <!-- ─── TIMETABLE ─── -->
+    <!-- TIMETABLE -->
     <div class="page" id="page-timetable">
-      <div class="ph">
-        <div class="ph-title">📅 Timetable Generator</div>
-        <div class="ph-sub">Auto-create your perfect weekly study schedule</div>
-      </div>
-
+      <div class="ph"><div class="ph-title">📅 Timetable Generator</div><div class="ph-sub">Auto-create your weekly study schedule</div></div>
       <div class="card mb24">
-        <div class="card-title">⚙️ Setup Your Schedule</div>
+        <div class="card-title">⚙️ Setup</div>
         <div class="g2" style="gap:14px;margin-bottom:16px">
-          <div>
-            <label class="form-label">Add Subject</label>
-            <div class="row">
-              <input id="tt-subinput" class="input" placeholder="e.g. Mathematics" onkeydown="if(event.key==='Enter')addTTSubject()" />
-              <button class="btn btn-primary" onclick="addTTSubject()">+</button>
-            </div>
-          </div>
-          <div>
-            <label class="form-label">Study Hours Per Day: <span id="hours-val">4</span></label>
-            <input type="range" min="2" max="9" value="4" id="tt-hours"
-              oninput="document.getElementById('hours-val').textContent=this.value"
-              style="width:100%;accent-color:var(--accent);margin-top:14px;cursor:pointer" />
-          </div>
+          <div><label class="form-label">Add Subject</label><div class="row"><input id="tt-si" class="input" placeholder="e.g. Mathematics" onkeydown="if(event.key==='Enter')addSub()"/><button class="btn btn-primary" onclick="addSub()">+</button></div></div>
+          <div><label class="form-label">Hours/day: <span id="hr-val">4</span></label><input type="range" min="2" max="9" value="4" id="tt-hr" oninput="document.getElementById('hr-val').textContent=this.value" style="width:100%;accent-color:var(--accent);margin-top:14px;cursor:pointer"/></div>
         </div>
-        <div id="tt-subjects-wrap" class="row" style="flex-wrap:wrap;gap:8px;min-height:28px;margin-bottom:16px"></div>
-        <button class="btn btn-teal" onclick="generateTimetable()">🗓️ Generate Timetable</button>
+        <div id="tt-subs" class="row" style="flex-wrap:wrap;gap:8px;min-height:28px;margin-bottom:16px"></div>
+        <button class="btn btn-teal" onclick="genTT()">🗓️ Generate Timetable</button>
       </div>
-
-      <div class="card" id="tt-result-card" style="display:none">
-        <div class="card-title">📋 Your Weekly Schedule</div>
+      <div class="card" id="tt-card" style="display:none">
+        <div class="card-title">📋 Weekly Schedule</div>
         <div class="tt-wrap"><div class="tt" id="tt-grid"></div></div>
       </div>
     </div>
 
-    <!-- ─── NOTES ─── -->
+    <!-- NOTES -->
     <div class="page" id="page-notes">
-      <div class="ph">
-        <div class="ph-title">📂 Notes & Files</div>
-        <div class="ph-sub">Upload, manage, and download your study materials</div>
+      <div class="ph"><div class="ph-title">📂 Notes & Files</div><div class="ph-sub">Upload and manage your study materials</div></div>
+      <div class="dropzone" id="dropzone" onclick="document.getElementById('fi').click()" ondragover="event.preventDefault();this.classList.add('dragging')" ondragleave="this.classList.remove('dragging')" ondrop="handleDrop(event)">
+        <div class="dz-icon">☁️</div><div class="dz-text">Drop files here or click to upload</div><div class="dz-hint">PDF, images, Word, text accepted</div>
+        <input type="file" id="fi" multiple accept=".pdf,image/*,.doc,.docx,.txt" style="display:none" onchange="handleFiles(this.files)"/>
       </div>
-
-      <div class="dropzone" id="dropzone" onclick="document.getElementById('file-input').click()"
-        ondragover="event.preventDefault();this.classList.add('dragging')"
-        ondragleave="this.classList.remove('dragging')"
-        ondrop="handleDrop(event)">
-        <div class="dz-icon">☁️</div>
-        <div class="dz-text">Drop files here or click to upload</div>
-        <div class="dz-hint">PDF, images, Word, text files accepted</div>
-        <input type="file" id="file-input" multiple accept=".pdf,image/*,.doc,.docx,.txt" style="display:none" onchange="handleFiles(this.files)" />
-      </div>
-
-      <div id="notes-grid" class="notes-grid">
-        <div class="center muted text-sm" style="padding:40px;grid-column:1/-1">No files uploaded yet</div>
-      </div>
+      <div id="notes-grid" class="notes-grid"></div>
     </div>
 
-    <!-- ─── AI ASSISTANT ─── -->
+    <!-- AI ASSISTANT -->
     <div class="page" id="page-ai">
-      <div class="ph">
-        <div class="ph-title">🤖 AI Study Assistant</div>
-        <div class="ph-sub">Powered by Claude — your personal academic companion</div>
+      <div class="ph"><div class="ph-title">🤖 AI Study Assistant</div><div class="ph-sub">Powered by GPT-4o-mini — your personal academic companion</div></div>
+      <div class="api-banner" id="ai-banner" style="display:none">
+        <div class="api-banner-icon">🔑</div>
+        <div><strong>OpenAI API Key Required</strong><br><span style="color:var(--muted)">Go to <span class="link" onclick="goTo('settings',null)">⚙️ Settings</span> and paste your key. Get one free at <a href="https://platform.openai.com/api-keys" target="_blank" style="color:var(--teal)">platform.openai.com</a></span></div>
       </div>
-
       <div class="card">
         <div class="chat-area" id="chat-area">
           <div class="msg bot">
-            <div class="msg-avatar">✨</div>
-            <div class="msg-bubble">Hi! I'm your AI study assistant 🎓 Ask me anything — study strategies, help with your tasks, subject questions, or just need some motivation!</div>
+            <div class="msg-av">🤖</div>
+            <div class="msg-bubble">Hi! I'm your AI study assistant powered by GPT-4o 🎓 Ask me anything — study strategies, deadline management, subject questions, or just need motivation!</div>
           </div>
         </div>
         <div class="row">
-          <input id="chat-input" class="input" placeholder="Ask me anything academic…" style="flex:1" onkeydown="if(event.key==='Enter')sendChat()" />
-          <button class="btn btn-primary" onclick="sendChat()">Send ✨</button>
+          <input id="chat-in" class="input" placeholder="Ask me anything academic…" style="flex:1" onkeydown="if(event.key==='Enter')sendChat()"/>
+          <button class="btn btn-primary" id="chat-btn" onclick="sendChat()">Send ✨</button>
         </div>
         <div class="quick-chips mt16">
           <div class="chip" onclick="setChip(this)">How to study effectively?</div>
           <div class="chip" onclick="setChip(this)">Help manage my deadlines</div>
           <div class="chip" onclick="setChip(this)">Give me motivation!</div>
           <div class="chip" onclick="setChip(this)">Best note-taking methods?</div>
+          <div class="chip" onclick="setChip(this)">How to avoid procrastination?</div>
         </div>
       </div>
     </div>
 
-    <!-- ─── PROFILE ─── -->
-    <div class="page" id="page-profile">
-      <div class="ph">
-        <div class="ph-title">👤 Profile</div>
-        <div class="ph-sub">Your account details and achievements</div>
+    <!-- SETTINGS -->
+    <div class="page" id="page-settings">
+      <div class="ph"><div class="ph-title">⚙️ Settings</div><div class="ph-sub">Configure your API keys</div></div>
+      <div class="card mb24">
+        <div class="card-title">🤖 OpenAI API Key <span style="font-size:11px;font-weight:400;color:var(--teal);margin-left:6px">(required for AI chat)</span></div>
+        <p class="text-sm muted mb16">Your key is stored only in your browser's localStorage — never transmitted to anyone except OpenAI directly.</p>
+        <div class="settings-row">
+          <input id="oai-key" class="input" type="password" placeholder="sk-proj-…"/>
+          <button class="btn btn-primary" onclick="saveOAIKey()">💾 Save</button>
+        </div>
+        <div id="key-stat" class="text-xs mt8" style="color:var(--muted)"></div>
+        <div class="divider"></div>
+        <p class="text-xs muted">Get a free key → <a href="https://platform.openai.com/api-keys" target="_blank" style="color:var(--teal)">platform.openai.com/api-keys</a> (new accounts get free credits)</p>
       </div>
+      <div class="card">
+        <div class="card-title">📧 EmailJS Configuration <span style="font-size:11px;font-weight:400;color:var(--muted);margin-left:6px">(for real OTP emails)</span></div>
+        <p class="text-sm muted mb16">Create a free account at <a href="https://emailjs.com" target="_blank" style="color:var(--teal)">emailjs.com</a>, create a service + email template, then fill these in. <br><strong style="color:var(--gold)">Without this, OTPs appear in a popup dialog (demo mode).</strong></p>
+        <div class="form-group"><label class="form-label">Service ID</label><input id="ejs-svc" class="input" placeholder="service_xxxxxxx"/></div>
+        <div class="form-group"><label class="form-label">Template ID</label><input id="ejs-tpl" class="input" placeholder="template_xxxxxxx"/></div>
+        <div class="form-group" style="margin-bottom:16px"><label class="form-label">Public Key</label><input id="ejs-pub" class="input" placeholder="Your public key"/></div>
+        <button class="btn btn-primary" onclick="saveEJSConfig()">💾 Save EmailJS Config</button>
+        <div class="divider"></div>
+        <div style="font-size:12px;color:var(--muted);background:var(--surface);padding:12px;border-radius:10px;line-height:1.7">
+          <strong style="color:var(--text)">EmailJS Template variables to use:</strong><br>
+          <code style="color:var(--accent2)">{{to_email}}</code> — recipient email<br>
+          <code style="color:var(--accent2)">{{otp_code}}</code> — the 6-digit OTP<br>
+          <code style="color:var(--accent2)">{{app_name}}</code> — "StudyMate"
+        </div>
+      </div>
+    </div>
 
+    <!-- PROFILE -->
+    <div class="page" id="page-profile">
+      <div class="ph"><div class="ph-title">👤 Profile</div><div class="ph-sub">Your account and achievements</div></div>
       <div class="g2">
         <div class="card" style="display:flex;flex-direction:column;align-items:center;text-align:center">
-          <div class="avatar-big" id="profile-avatar">?</div>
-          <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:4px" id="profile-name">—</div>
-          <div class="muted text-sm mb16" id="profile-email">—</div>
-          <div class="muted text-xs mb24" id="profile-joined">—</div>
-
-          <div id="profile-view-btns" class="row">
-            <button class="btn btn-ghost btn-sm" onclick="showEditProfile()">✏️ Edit Name</button>
+          <div class="avatar-big" id="prof-av">?</div>
+          <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:4px" id="prof-name">—</div>
+          <div class="muted text-sm mb16" id="prof-email">—</div>
+          <div class="muted text-xs mb24" id="prof-joined">—</div>
+          <div id="pv-btns" class="row">
+            <button class="btn btn-ghost btn-sm" onclick="showEditProf()">✏️ Edit Name</button>
             <button class="btn btn-coral btn-sm" onclick="logout()">🚪 Logout</button>
           </div>
-          <div id="profile-edit-form" style="display:none;width:100%">
-            <input id="profile-name-input" class="input mb8" placeholder="Your name" />
+          <div id="pe-form" style="display:none;width:100%">
+            <input id="pe-inp" class="input mb8" placeholder="Your name"/>
             <div class="row" style="justify-content:center;gap:8px">
-              <button class="btn btn-primary btn-sm" onclick="saveProfile()">💾 Save</button>
-              <button class="btn btn-ghost btn-sm" onclick="cancelEditProfile()">Cancel</button>
+              <button class="btn btn-primary btn-sm" onclick="saveProf()">💾 Save</button>
+              <button class="btn btn-ghost btn-sm" onclick="cancelProf()">Cancel</button>
             </div>
           </div>
         </div>
-
         <div class="card">
-          <div class="card-title">🏆 Your Stats</div>
+          <div class="card-title">🏆 Stats</div>
           <div class="flex-center mb16">
             <div class="ring-wrap">
               <svg width="100" height="100" style="transform:rotate(-90deg)">
                 <circle cx="50" cy="50" r="40" fill="none" stroke="var(--border2)" stroke-width="9"/>
-                <circle id="profile-ring" cx="50" cy="50" r="40" fill="none" stroke="var(--gold)" stroke-width="9"
-                  stroke-dasharray="251.33" stroke-dashoffset="251.33"
-                  stroke-linecap="round" style="transition:stroke-dashoffset 1s"/>
+                <circle id="prof-ring" cx="50" cy="50" r="40" fill="none" stroke="var(--gold)" stroke-width="9" stroke-dasharray="251.33" stroke-dashoffset="251.33" stroke-linecap="round" style="transition:stroke-dashoffset 1s"/>
               </svg>
-              <div class="ring-label">
-                <div class="ring-pct" id="profile-pct" style="color:var(--gold)">0%</div>
-                <div class="ring-lbl">Done</div>
-              </div>
+              <div class="ring-label"><div class="ring-pct" id="prof-pct" style="color:var(--gold)">0%</div><div class="ring-lbl">Done</div></div>
             </div>
           </div>
           <div class="g2" style="gap:10px">
-            <div class="profile-stat"><div class="val" style="color:var(--accent)" id="ps-total">0</div><div class="lbl">Total Tasks</div></div>
-            <div class="profile-stat"><div class="val" style="color:var(--teal)" id="ps-done">0</div><div class="lbl">Completed</div></div>
-            <div class="profile-stat"><div class="val" style="color:var(--coral)" id="ps-pend">0</div><div class="lbl">Pending</div></div>
-            <div class="profile-stat"><div class="val" style="color:var(--gold)" id="ps-notes">0</div><div class="lbl">Notes Saved</div></div>
+            <div class="profile-stat"><div class="val" style="color:var(--accent)" id="ps1">0</div><div class="lbl">Total Tasks</div></div>
+            <div class="profile-stat"><div class="val" style="color:var(--teal)" id="ps2">0</div><div class="lbl">Completed</div></div>
+            <div class="profile-stat"><div class="val" style="color:var(--coral)" id="ps3">0</div><div class="lbl">Pending</div></div>
+            <div class="profile-stat"><div class="val" style="color:var(--gold)" id="ps4">0</div><div class="lbl">Notes</div></div>
           </div>
         </div>
       </div>
@@ -662,500 +489,366 @@
   </main>
 </div>
 
-<!-- ═══════════════════════════════════════════════════ JS ══ -->
 <script>
-// ─── STATE ────────────────────────────────────────────────────
-let STATE = {
-  user: null,
-  tasks: [],
-  notes: [],
-  ttSubjects: [],
-  taskFilter: 'all',
-  editingTaskId: null,
-  authMode: 'login',
-  chatHistory: []
-};
-const SUB_COLORS = ['#7c6af7','#2dd4bf','#f87171','#fbbf24','#a78bfa','#34d399','#fb923c','#ec4899'];
-const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-const SLOTS = ['08:00','09:00','10:00','11:00','13:00','14:00','15:00','16:00','17:00','19:00'];
+// ════════ STATE ════════
+const S={user:null,tasks:[],notes:[],subs:[],filter:'all',editId:null,chat:[],pendEmail:'',pendOTP:'',otpExp:0,timerIv:null};
+const DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const SLOTS=['08:00','09:00','10:00','11:00','13:00','14:00','15:00','16:00','17:00','19:00'];
+const SCOLS=['#7c6af7','#2dd4bf','#f87171','#fbbf24','#a78bfa','#34d399','#fb923c','#ec4899'];
+const PCOLS={high:'#f87171',medium:'#fbbf24',low:'#2dd4bf'};
 
-// ─── PERSIST ─────────────────────────────────────────────────
-const save = (key, val) => { try { localStorage.setItem(key, JSON.stringify(val)); } catch(e){} };
-const load = (key, def) => { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : def; } catch(e){ return def; } };
+// ════════ UTILS ════════
+const sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const ld=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}};
+const uid=()=>Math.random().toString(36).slice(2,9);
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const $=id=>document.getElementById(id);
 
-function init() {
-  STATE.tasks = load('sm_tasks', []);
-  STATE.notes = load('sm_notes', []);
-  const session = load('sm_session', null);
-  if (session) {
-    STATE.user = session;
-    showApp();
-  }
+// ════════ INIT ════════
+function init(){
+  S.tasks=ld('sm_tasks',[]);S.notes=ld('sm_notes',[]);
+  const sess=ld('sm_session',null);
+  if(sess){S.user=sess;showApp();}
   startCanvas();
+  // Restore settings
+  const k=ld('sm_oai','');if(k)$('oai-key').value=k;
+  const ejs=ld('sm_ejs',{});
+  if(ejs.svc)$('ejs-svc').value=ejs.svc;
+  if(ejs.tpl)$('ejs-tpl').value=ejs.tpl;
+  if(ejs.pub){$('ejs-pub').value=ejs.pub;try{emailjs.init(ejs.pub)}catch(e){}}
 }
 
-// ─── AUTH ─────────────────────────────────────────────────────
-function toggleAuthMode() {
-  STATE.authMode = STATE.authMode === 'login' ? 'register' : 'login';
-  const isReg = STATE.authMode === 'register';
-  document.getElementById('auth-title').textContent = isReg ? 'Create Account' : 'Welcome back';
-  document.getElementById('auth-sub').textContent = isReg ? 'Join thousands of students' : 'Log in to continue your journey';
-  document.getElementById('auth-name-group').style.display = isReg ? 'block' : 'none';
-  document.getElementById('auth-btn-text').textContent = isReg ? '✨ Create Account' : '🚀 Sign In';
-  document.getElementById('auth-switch-text').textContent = isReg ? 'Already have an account?' : "Don't have an account?";
-  document.getElementById('auth-switch-link').textContent = isReg ? 'Sign in' : 'Sign up';
+// ════════ SETTINGS ════════
+function saveOAIKey(){
+  const k=$('oai-key').value.trim();
+  if(!k){toast('Paste your API key ⚠️');return;}
+  sv('sm_oai',k);
+  $('key-stat').textContent='✅ Saved locally.';$('key-stat').style.color='var(--teal)';
+  checkBanner();toast('OpenAI key saved 🔑');
+}
+function saveEJSConfig(){
+  const cfg={svc:$('ejs-svc').value.trim(),tpl:$('ejs-tpl').value.trim(),pub:$('ejs-pub').value.trim()};
+  sv('sm_ejs',cfg);
+  if(cfg.pub)try{emailjs.init(cfg.pub)}catch(e){}
+  toast('EmailJS config saved 📧');
+}
+function checkBanner(){$('ai-banner').style.display=ld('sm_oai','')?'none':'flex';}
+
+// ════════ AUTH ════════
+function s1go(){
+  const email=$('a-email').value.trim();
+  if(!email||!email.includes('@')){toast('Valid email required ⚠️');return;}
+  S.pendEmail=email;
+  sendOTP(email);
 }
 
-function authSubmit() {
-  const email = document.getElementById('auth-email').value.trim();
-  const pass = document.getElementById('auth-pass').value;
-  const name = document.getElementById('auth-name').value.trim();
-  if (!email || !pass) { toast('Fill all fields ⚠️'); return; }
-  const users = load('sm_users', []);
-  if (STATE.authMode === 'register') {
-    if (!name) { toast('Name required ⚠️'); return; }
-    if (users.find(u => u.email === email)) { toast('Email already exists ❌'); return; }
-    const u = { id: uid(), name, email, password: pass, joinedAt: new Date().toISOString() };
-    users.push(u); save('sm_users', users);
-    STATE.user = u; save('sm_session', u);
-    toast('Account created! 🎉'); showApp();
-  } else {
-    const u = users.find(u => u.email === email && u.password === pass);
-    if (!u) { toast('Invalid credentials ❌'); return; }
-    STATE.user = u; save('sm_session', u);
-    toast('Welcome back, ' + u.name.split(' ')[0] + '! 👋'); showApp();
+function genOTP(){return Math.floor(100000+Math.random()*900000).toString();}
+
+async function sendOTP(email){
+  const btn=$('s1btn');btn.disabled=true;btn.textContent='Sending…';
+  const otp=genOTP();S.pendOTP=otp;S.otpExp=Date.now()+10*60*1000;
+  const ejsCfg=ld('sm_ejs',{});let sent=false;
+  if(ejsCfg.svc&&ejsCfg.tpl&&ejsCfg.pub){
+    try{
+      emailjs.init(ejsCfg.pub);
+      await emailjs.send(ejsCfg.svc,ejsCfg.tpl,{to_email:email,otp_code:otp,app_name:'StudyMate'});
+      sent=true;toast('OTP sent to '+email+' 📧');
+    }catch(e){console.warn('EmailJS:',e);}
   }
+  if(!sent){
+    // Demo mode
+    setTimeout(()=>{
+      alert('📬 DEMO MODE — EmailJS not configured.\n\nYour OTP code is:\n\n' + otp + '\n\n(Configure EmailJS in Settings for real email delivery)');
+    },100);
+    toast('Demo: OTP shown in popup 📋');
+  }
+  $('s1').style.display='none';$('s2').style.display='block';
+  $('si2').classList.add('done');$('otp-dest').textContent=email;
+  $('ob0').focus();startTimer();
+  btn.disabled=false;btn.textContent='Continue →';
 }
 
-function logout() {
-  STATE.user = null; localStorage.removeItem('sm_session');
-  document.getElementById('main-app').style.display = 'none';
-  document.getElementById('auth-screen').style.display = 'flex';
-  toast('Logged out 👋');
+function oi(i){
+  const v=$('ob'+i).value;
+  if(v&&i<5)$('ob'+(i+1)).focus();
+  $('ob'+i).classList.toggle('filled',!!v);
+  const code=Array.from({length:6},(_,j)=>$('ob'+j).value).join('');
+  if(code.length===6)setTimeout(verifyOTP,120);
+}
+function ok(e,i){if(e.key==='Backspace'&&!$('ob'+i).value&&i>0)$('ob'+(i-1)).focus();}
+
+function verifyOTP(){
+  const code=Array.from({length:6},(_,i)=>$('ob'+i).value).join('');
+  if(code.length<6){toast('Enter all 6 digits ⚠️');return;}
+  if(Date.now()>S.otpExp){toast('OTP expired — please resend ⏰');return;}
+  if(code!==S.pendOTP){toast('Incorrect code ❌');Array.from({length:6},(_,i)=>{$('ob'+i).value='';$('ob'+i).classList.remove('filled')});$('ob0').focus();return;}
+  clearInterval(S.timerIv);
+  $('si3').classList.add('done');
+  const users=ld('sm_users',[]);
+  const exists=users.find(u=>u.email===S.pendEmail);
+  $('s2').style.display='none';
+  if(exists){$('s3b').style.display='block';}
+  else{$('s3').style.display='block';}
+  toast('Email verified ✅');
 }
 
-// ─── SHOW APP ─────────────────────────────────────────────────
-function showApp() {
-  document.getElementById('auth-screen').style.display = 'none';
-  document.getElementById('main-app').style.display = 'flex';
-  const u = STATE.user;
-  document.getElementById('sb-name').textContent = u.name;
-  document.getElementById('sb-email').textContent = u.email;
-  const h = new Date().getHours();
-  document.getElementById('dash-greeting').textContent = (h<12?'Good morning':h<17?'Good afternoon':'Good evening') + ', ' + u.name.split(' ')[0] + ' 👋';
-  updateDashboard(); renderTasks(); renderNotes(); updateProfile();
+function s3go(){
+  const name=$('a-name').value.trim(),pass=$('a-pass').value;
+  if(!name){toast('Name required ⚠️');return;}
+  if(pass.length<6){toast('Password must be 6+ chars ⚠️');return;}
+  const u={id:uid(),name,email:S.pendEmail,password:pass,joinedAt:new Date().toISOString()};
+  const users=ld('sm_users',[]);users.push(u);sv('sm_users',users);
+  S.user=u;sv('sm_session',u);toast('Account created! 🎉');showApp();
 }
 
-// ─── NAVIGATION ───────────────────────────────────────────────
-function goTo(page, el) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-  document.getElementById('page-' + page).classList.add('active');
-  el.classList.add('active');
-  if (page === 'dashboard') updateDashboard();
-  if (page === 'profile') updateProfile();
+function s3bgo(){
+  const pass=$('a-rpass').value;
+  if(!pass){toast('Enter your password ⚠️');return;}
+  const u=ld('sm_users',[]).find(u=>u.email===S.pendEmail&&u.password===pass);
+  if(!u){toast('Wrong password ❌');return;}
+  S.user=u;sv('sm_session',u);toast('Welcome back, '+u.name.split(' ')[0]+'! 👋');showApp();
+}
+
+function backToS1(){
+  ['s2','s3','s3b'].forEach(id=>$(id).style.display='none');
+  $('s1').style.display='block';
+  ['si2','si3'].forEach(id=>$(id).classList.remove('done'));
+  Array.from({length:6},(_,i)=>{$('ob'+i).value='';$('ob'+i).classList.remove('filled')});
+  clearInterval(S.timerIv);
+}
+
+function resendOTP(){Array.from({length:6},(_,i)=>{$('ob'+i).value='';$('ob'+i).classList.remove('filled')});sendOTP(S.pendEmail);}
+
+function startTimer(){
+  clearInterval(S.timerIv);let secs=60;
+  $('resend-lnk').style.display='none';$('resend-tmr').style.display='inline';$('cntdown').textContent=secs;
+  S.timerIv=setInterval(()=>{
+    secs--;$('cntdown').textContent=secs;
+    if(secs<=0){clearInterval(S.timerIv);$('resend-tmr').style.display='none';$('resend-lnk').style.display='inline';}
+  },1000);
+}
+
+function logout(){
+  S.user=null;localStorage.removeItem('sm_session');
+  $('main-app').style.display='none';$('auth-screen').style.display='flex';
+  backToS1();$('a-email').value='';toast('Logged out 👋');
+}
+
+// ════════ SHOW APP ════════
+function showApp(){
+  $('auth-screen').style.display='none';$('main-app').style.display='flex';
+  const u=S.user;$('sb-name').textContent=u.name;$('sb-email').textContent=u.email;
+  const h=new Date().getHours();
+  $('dash-greet').textContent=(h<12?'Good morning':h<17?'Good afternoon':'Good evening')+', '+u.name.split(' ')[0]+' 👋';
+  updateDash();renderTasks();renderNotes();updateProf();checkBanner();
+  const k=ld('sm_oai','');if(k){$('key-stat').textContent='✅ Key saved.';$('key-stat').style.color='var(--teal)';}
+}
+
+// ════════ NAVIGATION ════════
+function goTo(page,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
+  $('page-'+page).classList.add('active');
+  if(el)el.classList.add('active');
+  else{const lnks=document.querySelectorAll('.nav-link');lnks.forEach(l=>{if(l.getAttribute('onclick')&&l.getAttribute('onclick').includes("'"+page+"'"))l.classList.add('active');});}
+  if(page==='dashboard')updateDash();
+  if(page==='profile')updateProf();
   closeSidebar();
 }
+function toggleSidebar(){$('sidebar').classList.toggle('open');}
+function closeSidebar(){$('sidebar').classList.remove('open');}
 
-function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
-function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); }
-
-// ─── TASKS ────────────────────────────────────────────────────
-const PRIO_C = { high:'#f87171', medium:'#fbbf24', low:'#2dd4bf' };
-
-function saveTask() {
-  const title = document.getElementById('t-title').value.trim();
-  const deadline = document.getElementById('t-deadline').value;
-  const subject = document.getElementById('t-subject').value.trim();
-  const priority = document.getElementById('t-priority').value;
-  if (!title) { toast('Task title required ⚠️'); return; }
-  if (STATE.editingTaskId) {
-    STATE.tasks = STATE.tasks.map(t => t.id === STATE.editingTaskId ? {...t, title, deadline, subject, priority} : t);
-    toast('Task updated ✏️'); cancelEditTask();
-  } else {
-    STATE.tasks.push({ id: uid(), title, deadline, subject, priority, done: false, createdAt: new Date().toISOString() });
-    toast('Task added ✅');
-  }
-  save('sm_tasks', STATE.tasks);
-  clearTaskForm(); renderTasks(); updateDashboard();
+// ════════ TASKS ════════
+function saveTask(){
+  const t=$('tt-t').value.trim();if(!t){toast('Title required ⚠️');return;}
+  const obj={title:t,deadline:$('tt-d').value,subject:$('tt-s').value.trim(),priority:$('tt-p').value};
+  if(S.editId){S.tasks=S.tasks.map(x=>x.id===S.editId?{...x,...obj}:x);toast('Updated ✏️');cancelEdit();}
+  else{S.tasks.push({id:uid(),...obj,done:false,createdAt:new Date().toISOString()});toast('Task added ✅');}
+  sv('sm_tasks',S.tasks);clearTForm();renderTasks();updateDash();
 }
-
-function clearTaskForm() {
-  ['t-title','t-deadline','t-subject'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('t-priority').value = 'medium';
+function clearTForm(){['tt-t','tt-d','tt-s'].forEach(id=>$(id).value='');$('tt-p').value='medium';}
+function editTask(id){
+  const t=S.tasks.find(x=>x.id===id);if(!t)return;
+  S.editId=id;$('tt-t').value=t.title;$('tt-d').value=t.deadline||'';$('tt-s').value=t.subject||'';$('tt-p').value=t.priority||'medium';
+  $('tf-title').textContent='✏️ Edit Task';$('tbtn').textContent='💾 Save';$('tcancel').style.display='inline-flex';
 }
-
-function editTask(id) {
-  const t = STATE.tasks.find(t => t.id === id); if (!t) return;
-  STATE.editingTaskId = id;
-  document.getElementById('t-title').value = t.title;
-  document.getElementById('t-deadline').value = t.deadline || '';
-  document.getElementById('t-subject').value = t.subject || '';
-  document.getElementById('t-priority').value = t.priority || 'medium';
-  document.getElementById('task-form-title').textContent = '✏️ Edit Task';
-  document.getElementById('task-btn-txt').textContent = '💾 Save Changes';
-  document.getElementById('cancel-edit-btn').style.display = 'inline-flex';
-  document.querySelector('#page-tasks').scrollTop = 0;
+function cancelEdit(){S.editId=null;clearTForm();$('tf-title').textContent='➕ Add New Task';$('tbtn').textContent='➕ Add Task';$('tcancel').style.display='none';}
+function toggleTask(id){S.tasks=S.tasks.map(t=>t.id===id?{...t,done:!t.done}:t);sv('sm_tasks',S.tasks);renderTasks();updateDash();}
+function delTask(id){S.tasks=S.tasks.filter(t=>t.id!==id);sv('sm_tasks',S.tasks);renderTasks();updateDash();toast('Deleted 🗑️');}
+function setFilter(f,btn){
+  S.filter=f;
+  document.querySelectorAll('#page-tasks .btn-ghost.btn-sm').forEach(b=>{b.style.borderColor='';b.style.color='';});
+  btn.style.borderColor='var(--accent)';btn.style.color='var(--accent2)';renderTasks();
 }
-
-function cancelEditTask() {
-  STATE.editingTaskId = null;
-  clearTaskForm();
-  document.getElementById('task-form-title').textContent = '➕ Add New Task';
-  document.getElementById('task-btn-txt').textContent = '➕ Add Task';
-  document.getElementById('cancel-edit-btn').style.display = 'none';
-}
-
-function toggleTask(id) {
-  STATE.tasks = STATE.tasks.map(t => t.id === id ? {...t, done: !t.done} : t);
-  save('sm_tasks', STATE.tasks); renderTasks(); updateDashboard();
-}
-
-function deleteTask(id) {
-  STATE.tasks = STATE.tasks.filter(t => t.id !== id);
-  save('sm_tasks', STATE.tasks); renderTasks(); updateDashboard();
-  toast('Task deleted 🗑️');
-}
-
-function setFilter(f, btn) {
-  STATE.taskFilter = f;
-  document.querySelectorAll('#page-tasks .btn-ghost.btn-sm').forEach(b => {
-    b.style.borderColor = ''; b.style.color = '';
-  });
-  btn.style.borderColor = 'var(--accent)'; btn.style.color = 'var(--accent2)';
-  renderTasks();
-}
-
-function renderTasks() {
-  const list = document.getElementById('task-list');
-  let filtered = STATE.tasks;
-  if (STATE.taskFilter === 'done') filtered = filtered.filter(t => t.done);
-  if (STATE.taskFilter === 'pending') filtered = filtered.filter(t => !t.done);
-  document.getElementById('task-count').textContent = filtered.length + ' task' + (filtered.length !== 1 ? 's' : '');
-
-  // Badge
-  const pend = STATE.tasks.filter(t => !t.done).length;
-  const badge = document.getElementById('pending-badge');
-  badge.style.display = pend > 0 ? 'inline-block' : 'none';
-  badge.textContent = pend;
-
-  if (!filtered.length) { list.innerHTML = '<div class="center muted text-sm" style="padding:40px">No tasks here!</div>'; return; }
-  list.innerHTML = filtered.map(t => {
-    const late = t.deadline && !t.done && new Date(t.deadline) < new Date();
-    const dateStr = t.deadline ? new Date(t.deadline).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '';
-    return `<div class="task-item ${t.done?'done':''}" id="ti-${t.id}">
-      <div class="task-prio" style="background:${PRIO_C[t.priority||'medium']}"></div>
+function renderTasks(){
+  let fl=[...S.tasks];
+  if(S.filter==='done')fl=fl.filter(t=>t.done);
+  if(S.filter==='pending')fl=fl.filter(t=>!t.done);
+  $('tcnt').textContent=fl.length+' task'+(fl.length!==1?'s':'');
+  const pend=S.tasks.filter(t=>!t.done).length;
+  const b=$('pending-badge');b.style.display=pend>0?'inline-block':'none';b.textContent=pend;
+  const list=$('task-list');
+  if(!fl.length){list.innerHTML='<div class="center muted text-sm" style="padding:40px">No tasks!</div>';return;}
+  list.innerHTML=fl.map(t=>{
+    const late=t.deadline&&!t.done&&new Date(t.deadline)<new Date();
+    const ds=t.deadline?new Date(t.deadline).toLocaleDateString('en-US',{month:'short',day:'numeric'}):'';
+    return `<div class="task-item ${t.done?'done':''}">
+      <div class="task-prio" style="background:${PCOLS[t.priority||'medium']}"></div>
       <div class="task-check ${t.done?'on':''}" onclick="toggleTask('${t.id}')">${t.done?'✓':''}</div>
-      <div style="flex:1">
-        <div class="task-name">${esc(t.title)}</div>
-        ${t.subject?`<div class="text-xs muted" style="margin-top:2px">${esc(t.subject)}</div>`:''}
-      </div>
-      ${dateStr?`<div class="task-meta ${late?'late':''}">📅 ${dateStr}</div>`:''}
-      <button class="btn btn-ghost btn-icon" onclick="editTask('${t.id}')" title="Edit">✏️</button>
-      <button class="btn btn-ghost btn-icon" onclick="deleteTask('${t.id}')" title="Delete">🗑️</button>
+      <div style="flex:1"><div class="task-name">${esc(t.title)}</div>${t.subject?`<div class="text-xs muted" style="margin-top:2px">${esc(t.subject)}</div>`:''}</div>
+      ${ds?`<div class="task-meta ${late?'late':''}">📅 ${ds}</div>`:''}
+      <button class="btn btn-ghost btn-icon" onclick="editTask('${t.id}')">✏️</button>
+      <button class="btn btn-ghost btn-icon" onclick="delTask('${t.id}')">🗑️</button>
     </div>`;
   }).join('');
 }
 
-// ─── DASHBOARD ────────────────────────────────────────────────
-function updateDashboard() {
-  const total = STATE.tasks.length;
-  const done = STATE.tasks.filter(t => t.done).length;
-  const pend = total - done;
-  const pct = total ? Math.round((done/total)*100) : 0;
-  document.getElementById('st-total').textContent = total;
-  document.getElementById('st-done').textContent = done;
-  document.getElementById('st-pending').textContent = pend;
-  document.getElementById('st-notes').textContent = STATE.notes.length;
-  document.getElementById('ring-pct').textContent = pct + '%';
-  const circ = 276.46;
-  document.getElementById('ring-fill').setAttribute('stroke-dashoffset', circ - (pct/100)*circ);
-  document.getElementById('pb-done').textContent = done;
-  document.getElementById('pb-pend').textContent = pend;
-  document.getElementById('pb-done-bar').style.width = (total ? (done/total)*100 : 0) + '%';
-  document.getElementById('pb-pend-bar').style.width = (total ? (pend/total)*100 : 0) + '%';
-  // Bar chart
-  const byDay = DAYS.map((d,i)=>({ d, n: STATE.tasks.filter(t=>{ const dd=t.deadline?new Date(t.deadline).getDay():null; return dd===(i+1)%7+(i===6?0:0); }).length }));
-  // Fix: map Mon=1..Sun=0
-  const dayNums = [1,2,3,4,5,6,0];
-  const byDay2 = DAYS.map((d,i)=>({ d, n: STATE.tasks.filter(t=>t.deadline && new Date(t.deadline).getDay()===dayNums[i]).length }));
-  const mx = Math.max(...byDay2.map(b=>b.n), 1);
-  document.getElementById('bar-chart').innerHTML = byDay2.map(b=>`
-    <div class="bar-col">
-      <div class="bar-count">${b.n}</div>
-      <div class="bar-fill" style="height:${(b.n/mx)*100}%;background:linear-gradient(to top,var(--accent),var(--teal))"></div>
-      <div class="bar-day">${b.d}</div>
-    </div>`).join('');
-  // Recent tasks
-  const recent = [...STATE.tasks].slice(-5).reverse();
-  document.getElementById('recent-tasks').innerHTML = recent.length ? recent.map(t=>`
-    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
-      <span>${t.done?'✅':'⏳'}</span>
-      <span style="flex:1;font-size:14px;${t.done?'text-decoration:line-through;opacity:.5':''}">${esc(t.title)}</span>
-      ${t.deadline?`<span class="text-xs muted">${new Date(t.deadline).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>`:''}
-    </div>`).join('') : '<div class="muted text-sm">No tasks yet!</div>';
+// ════════ DASHBOARD ════════
+function updateDash(){
+  const total=S.tasks.length,done=S.tasks.filter(t=>t.done).length,pend=total-done;
+  const pct=total?Math.round((done/total)*100):0;
+  $('st-total').textContent=total;$('st-done').textContent=done;$('st-pend').textContent=pend;$('st-notes').textContent=S.notes.length;
+  $('ring-pct').textContent=pct+'%';$('ring-fill').setAttribute('stroke-dashoffset',276.46-(pct/100)*276.46);
+  $('pb-d').textContent=done;$('pb-p').textContent=pend;
+  $('pb-db').style.width=(total?(done/total)*100:0)+'%';$('pb-pb').style.width=(total?(pend/total)*100:0)+'%';
+  const dn=[1,2,3,4,5,6,0];
+  const bd=DAYS.map((d,i)=>({d,n:S.tasks.filter(t=>t.deadline&&new Date(t.deadline).getDay()===dn[i]).length}));
+  const mx=Math.max(...bd.map(b=>b.n),1);
+  $('bar-chart').innerHTML=bd.map(b=>`<div class="bar-col"><div class="bar-count">${b.n}</div><div class="bar-fill" style="height:${(b.n/mx)*100}%;background:linear-gradient(to top,var(--accent),var(--teal))"></div><div class="bar-day">${b.d}</div></div>`).join('');
+  const rec=[...S.tasks].slice(-5).reverse();
+  $('recent-tasks').innerHTML=rec.length?rec.map(t=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)"><span>${t.done?'✅':'⏳'}</span><span style="flex:1;font-size:14px;${t.done?'text-decoration:line-through;opacity:.5':''}">${esc(t.title)}</span>${t.deadline?`<span class="text-xs muted">${new Date(t.deadline).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>`:''}</div>`).join(''):'<div class="muted text-sm">No tasks yet!</div>';
 }
 
-// ─── TIMETABLE ────────────────────────────────────────────────
-function addTTSubject() {
-  const inp = document.getElementById('tt-subinput');
-  const val = inp.value.trim(); if (!val) return;
-  if (STATE.ttSubjects.length >= 8) { toast('Max 8 subjects ⚠️'); return; }
-  STATE.ttSubjects.push({ name: val, color: SUB_COLORS[STATE.ttSubjects.length % 8] });
-  inp.value = ''; renderTTSubjects();
+// ════════ TIMETABLE ════════
+function addSub(){const i=$('tt-si'),v=i.value.trim();if(!v)return;if(S.subs.length>=8){toast('Max 8 ⚠️');return;}S.subs.push({name:v,col:SCOLS[S.subs.length%8]});i.value='';renderSubs();}
+function remSub(i){S.subs.splice(i,1);renderSubs();}
+function renderSubs(){$('tt-subs').innerHTML=S.subs.map((s,i)=>`<span class="sub-tag" style="background:${s.col}22;color:${s.col}">${esc(s.name)}<span class="rem" onclick="remSub(${i})">×</span></span>`).join('');}
+function genTT(){
+  if(!S.subs.length){toast('Add at least one subject ⚠️');return;}
+  const hr=parseInt($('tt-hr').value),slots=SLOTS.slice(0,hr),sched={};
+  DAYS.forEach(d=>{sched[d]={};const sh=[...S.subs].sort(()=>Math.random()-.5);slots.forEach((sl,i)=>{sched[d][sl]=sh[i%sh.length];});});
+  $('tt-card').style.display='block';
+  const grid=$('tt-grid');grid.style.gridTemplateColumns=`72px repeat(7,1fr)`;
+  let html=`<div class="tt-h">Time</div>`+DAYS.map(d=>`<div class="tt-h">${d}</div>`).join('');
+  slots.forEach(sl=>{html+=`<div class="tt-t">${sl}</div>`;DAYS.forEach(d=>{const s=sched[d][sl];html+=s?`<div class="tt-c" style="background:${s.col}18;color:${s.col}">${esc(s.name)}</div>`:`<div class="tt-c">—</div>`;});});
+  grid.innerHTML=html;toast('Timetable generated 📅');
 }
 
-function removeTTSubject(i) {
-  STATE.ttSubjects.splice(i, 1); renderTTSubjects();
-}
-
-function renderTTSubjects() {
-  document.getElementById('tt-subjects-wrap').innerHTML = STATE.ttSubjects.map((s,i)=>`
-    <span class="sub-tag" style="background:${s.color}22;color:${s.color}">
-      ${esc(s.name)} <span class="rem" onclick="removeTTSubject(${i})">×</span>
-    </span>`).join('');
-}
-
-function generateTimetable() {
-  if (!STATE.ttSubjects.length) { toast('Add at least one subject ⚠️'); return; }
-  const hours = parseInt(document.getElementById('tt-hours').value);
-  const slots = SLOTS.slice(0, hours);
-  const sched = {};
-  DAYS.forEach(d => {
-    sched[d] = {};
-    const shuffled = [...STATE.ttSubjects].sort(()=>Math.random()-.5);
-    slots.forEach((sl,i) => { sched[d][sl] = shuffled[i % shuffled.length]; });
-  });
-  // Build grid
-  const card = document.getElementById('tt-result-card');
-  card.style.display = 'block';
-  const grid = document.getElementById('tt-grid');
-  grid.style.gridTemplateColumns = `72px repeat(7,1fr)`;
-  let html = `<div class="tt-h">Time</div>` + DAYS.map(d=>`<div class="tt-h">${d}</div>`).join('');
-  slots.forEach(sl => {
-    html += `<div class="tt-t">${sl}</div>`;
-    DAYS.forEach(d => {
-      const s = sched[d][sl];
-      html += s ? `<div class="tt-c" style="background:${s.color}18;color:${s.color}">${esc(s.name)}</div>`
-                : `<div class="tt-c">—</div>`;
-    });
-  });
-  grid.innerHTML = html;
-  toast('Timetable generated! 📅');
-}
-
-// ─── NOTES ────────────────────────────────────────────────────
-function handleDrop(e) {
-  e.preventDefault();
-  document.getElementById('dropzone').classList.remove('dragging');
-  handleFiles(e.dataTransfer.files);
-}
-
-function handleFiles(files) {
-  Array.from(files).forEach(file => {
-    const reader = new FileReader();
-    reader.onload = ev => {
-      STATE.notes.push({ id: uid(), name: file.name, size: file.size, type: file.type, data: ev.target.result, uploadedAt: new Date().toISOString() });
-      save('sm_notes', STATE.notes);
-      renderNotes(); updateDashboard();
-      toast(file.name + ' uploaded! 📄');
-    };
-    reader.readAsDataURL(file);
+// ════════ NOTES ════════
+function handleDrop(e){e.preventDefault();$('dropzone').classList.remove('dragging');handleFiles(e.dataTransfer.files);}
+function handleFiles(files){
+  Array.from(files).forEach(f=>{
+    const r=new FileReader();
+    r.onload=ev=>{S.notes.push({id:uid(),name:f.name,size:f.size,type:f.type,data:ev.target.result,at:new Date().toISOString()});sv('sm_notes',S.notes);renderNotes();updateDash();toast(f.name+' uploaded 📄');};
+    r.readAsDataURL(f);
   });
 }
-
-function downloadNote(id) {
-  const n = STATE.notes.find(n => n.id === id); if (!n) return;
-  const a = document.createElement('a');
-  a.href = n.data; a.download = n.name; a.click();
-  toast('Download started ⬇️');
+function dlNote(id){const n=S.notes.find(n=>n.id===id);if(!n)return;const a=document.createElement('a');a.href=n.data;a.download=n.name;a.click();toast('Downloading ⬇️');}
+function delNote(id){S.notes=S.notes.filter(n=>n.id!==id);sv('sm_notes',S.notes);renderNotes();updateDash();toast('Deleted 🗑️');}
+function renderNotes(){
+  const g=$('notes-grid');
+  if(!S.notes.length){g.innerHTML='<div class="center muted text-sm" style="padding:40px;grid-column:1/-1">No files yet</div>';return;}
+  const gi=t=>t?.includes('pdf')?'📕':t?.includes('image')?'🖼️':t?.includes('word')||t?.includes('document')?'📝':'📄';
+  g.innerHTML=S.notes.map(n=>`<div class="note-card"><div class="note-icon-big">${gi(n.type)}</div><div class="note-fname">${esc(n.name)}</div><div class="note-fsize">${(n.size/1024).toFixed(1)} KB</div><div class="note-fsize" style="margin-bottom:12px">${new Date(n.at).toLocaleDateString()}</div><div class="row" style="justify-content:center;gap:8px"><button class="btn btn-teal btn-sm" onclick="dlNote('${n.id}')">⬇️</button><button class="btn btn-ghost btn-sm" onclick="delNote('${n.id}')">🗑️</button></div></div>`).join('');
 }
 
-function deleteNote(id) {
-  STATE.notes = STATE.notes.filter(n => n.id !== id);
-  save('sm_notes', STATE.notes); renderNotes(); updateDashboard();
-  toast('File deleted 🗑️');
-}
+// ════════ AI CHAT (OpenAI GPT-4o-mini) ════════
+function setChip(el){$('chat-in').value=el.textContent;$('chat-in').focus();}
 
-function renderNotes() {
-  const grid = document.getElementById('notes-grid');
-  document.getElementById('st-notes').textContent = STATE.notes.length;
-  if (!STATE.notes.length) { grid.innerHTML = '<div class="center muted text-sm" style="padding:40px;grid-column:1/-1">No files uploaded yet</div>'; return; }
-  const getIcon = t => t?.includes('pdf')? '📕' : t?.includes('image')? '🖼️' : t?.includes('word')||t?.includes('document')? '📝' : '📄';
-  grid.innerHTML = STATE.notes.map(n=>`
-    <div class="note-card">
-      <div class="note-icon-big">${getIcon(n.type)}</div>
-      <div class="note-fname">${esc(n.name)}</div>
-      <div class="note-fsize">${(n.size/1024).toFixed(1)} KB</div>
-      <div class="note-fsize" style="margin-bottom:12px">${new Date(n.uploadedAt).toLocaleDateString()}</div>
-      <div class="row" style="justify-content:center;gap:8px">
-        <button class="btn btn-teal btn-sm" onclick="downloadNote('${n.id}')">⬇️ Download</button>
-        <button class="btn btn-ghost btn-sm" onclick="deleteNote('${n.id}')">🗑️</button>
-      </div>
-    </div>`).join('');
-}
-
-// ─── AI CHAT ──────────────────────────────────────────────────
-function setChip(el) { document.getElementById('chat-input').value = el.textContent; document.getElementById('chat-input').focus(); }
-
-async function sendChat() {
-  const inp = document.getElementById('chat-input');
-  const text = inp.value.trim(); if (!text) return;
-  inp.value = '';
-  appendMsg('user', text);
-  STATE.chatHistory.push({ role: 'user', content: text });
-
-  // Typing indicator
-  const typingId = 'typing-' + uid();
-  appendMsg('bot', '<div class="dots"><span></span><span></span><span></span></div>', typingId);
-
-  const taskCtx = STATE.tasks.length
-    ? `User has ${STATE.tasks.length} tasks: ${STATE.tasks.slice(0,5).map(t=>`"${t.title}" (${t.done?'done':'pending'}${t.deadline?', due '+t.deadline:''})`).join(', ')}.`
-    : 'User has no tasks yet.';
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 500,
-        system: `You are StudyMate's helpful AI assistant for ${STATE.user?.name || 'a student'}. Be concise (2-3 short paragraphs max), warm, practical. ${taskCtx}`,
-        messages: STATE.chatHistory
+async function sendChat(){
+  const inp=$('chat-in'),text=inp.value.trim();if(!text)return;
+  const apiKey=ld('sm_oai','');
+  if(!apiKey){
+    toast('Add OpenAI key in ⚙️ Settings ❌');
+    goTo('settings',null);return;
+  }
+  inp.value='';
+  addMsg('user',esc(text));
+  S.chat.push({role:'user',content:text});
+  const tid='t'+uid();addMsgRaw('bot','<div class="dots"><span></span><span></span><span></span></div>',tid);
+  $('chat-btn').disabled=true;
+  const ctx=S.tasks.length?`User tasks: ${S.tasks.slice(0,5).map(t=>`"${t.title}"(${t.done?'✓':'pending'}${t.deadline?',due '+t.deadline:''})`).join(', ')}.`:'No tasks.';
+  try{
+    const res=await fetch('https://api.openai.com/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
+      body:JSON.stringify({
+        model:'gpt-4o-mini',
+        max_tokens:600,
+        messages:[{role:'system',content:`You are StudyMate AI, a helpful assistant for ${S.user?.name||'a student'}. Be concise, warm, practical. ${ctx}`},...S.chat]
       })
     });
-    const data = await res.json();
-    const reply = data.content?.[0]?.text || 'Sorry, I could not respond right now.';
-    document.getElementById(typingId)?.remove();
-    appendMsg('bot', reply);
-    STATE.chatHistory.push({ role: 'assistant', content: reply });
-    if (STATE.chatHistory.length > 20) STATE.chatHistory = STATE.chatHistory.slice(-20);
-  } catch(e) {
-    document.getElementById(typingId)?.remove();
-    appendMsg('bot', 'Connection error. Please check your network and try again.');
+    const data=await res.json();
+    if(data.error)throw new Error(data.error.message);
+    const reply=data.choices?.[0]?.message?.content||'No response.';
+    $(tid)?.remove();addMsg('bot',reply);
+    S.chat.push({role:'assistant',content:reply});
+    if(S.chat.length>20)S.chat=S.chat.slice(-20);
+  }catch(e){
+    $(tid)?.remove();
+    const msg=e.message.includes('401')||e.message.includes('API key')?'Invalid API key. Check ⚙️ Settings.':'Error: '+e.message;
+    addMsg('bot',msg);toast('AI error ❌');
   }
+  $('chat-btn').disabled=false;
+}
+function addMsg(role,text){
+  const a=$('chat-area'),el=document.createElement('div');
+  el.className='msg '+role;
+  el.innerHTML=`<div class="msg-av">${role==='bot'?'🤖':(S.user?.name[0]||'U')}</div><div class="msg-bubble">${text}</div>`;
+  a.appendChild(el);a.scrollTop=a.scrollHeight;
+}
+function addMsgRaw(role,html,id){
+  const a=$('chat-area'),el=document.createElement('div');
+  el.className='msg '+role;if(id)el.id=id;
+  el.innerHTML=`<div class="msg-av">${role==='bot'?'🤖':(S.user?.name[0]||'U')}</div><div class="msg-bubble">${html}</div>`;
+  a.appendChild(el);a.scrollTop=a.scrollHeight;
 }
 
-function appendMsg(role, html, id='') {
-  const area = document.getElementById('chat-area');
-  const el = document.createElement('div');
-  el.className = 'msg ' + role;
-  if (id) el.id = id;
-  el.innerHTML = `
-    <div class="msg-avatar">${role==='bot'?'✨':(STATE.user?.name[0]||'U')}</div>
-    <div class="msg-bubble">${html}</div>`;
-  area.appendChild(el);
-  area.scrollTop = area.scrollHeight;
+// ════════ PROFILE ════════
+function updateProf(){
+  const u=S.user;if(!u)return;
+  $('prof-av').textContent=u.name[0].toUpperCase();$('prof-name').textContent=u.name;$('prof-email').textContent=u.email;
+  $('prof-joined').textContent='Joined '+new Date(u.joinedAt).toLocaleDateString('en-US',{month:'long',year:'numeric'});
+  const total=S.tasks.length,done=S.tasks.filter(t=>t.done).length;
+  const pct=total?Math.round((done/total)*100):0;
+  $('prof-pct').textContent=pct+'%';$('prof-ring').setAttribute('stroke-dashoffset',251.33-(pct/100)*251.33);
+  $('ps1').textContent=total;$('ps2').textContent=done;$('ps3').textContent=total-done;$('ps4').textContent=S.notes.length;
+}
+function showEditProf(){$('pe-inp').value=S.user.name;$('pv-btns').style.display='none';$('pe-form').style.display='block';}
+function cancelProf(){$('pv-btns').style.display='flex';$('pe-form').style.display='none';}
+function saveProf(){
+  const name=$('pe-inp').value.trim();if(!name)return;
+  const users=ld('sm_users',[]);sv('sm_users',users.map(u=>u.id===S.user.id?{...u,name}:u));
+  S.user={...S.user,name};sv('sm_session',S.user);$('sb-name').textContent=name;updateProf();cancelProf();toast('Profile updated ✅');
 }
 
-// ─── PROFILE ─────────────────────────────────────────────────
-function updateProfile() {
-  const u = STATE.user; if (!u) return;
-  document.getElementById('profile-avatar').textContent = u.name[0].toUpperCase();
-  document.getElementById('profile-name').textContent = u.name;
-  document.getElementById('profile-email').textContent = u.email;
-  document.getElementById('profile-joined').textContent = 'Joined ' + new Date(u.joinedAt).toLocaleDateString('en-US',{month:'long',year:'numeric'});
-  const total = STATE.tasks.length, done = STATE.tasks.filter(t=>t.done).length;
-  const pct = total ? Math.round((done/total)*100) : 0;
-  document.getElementById('profile-pct').textContent = pct + '%';
-  document.getElementById('profile-ring').setAttribute('stroke-dashoffset', 251.33 - (pct/100)*251.33);
-  document.getElementById('ps-total').textContent = total;
-  document.getElementById('ps-done').textContent = done;
-  document.getElementById('ps-pend').textContent = total - done;
-  document.getElementById('ps-notes').textContent = STATE.notes.length;
+// ════════ TOAST ════════
+function toast(msg){
+  const el=document.createElement('div');el.className='toast';
+  el.innerHTML=`<span>${msg}</span>`;$('toast-container').appendChild(el);
+  setTimeout(()=>el.remove(),3500);
 }
 
-function showEditProfile() {
-  document.getElementById('profile-name-input').value = STATE.user.name;
-  document.getElementById('profile-view-btns').style.display = 'none';
-  document.getElementById('profile-edit-form').style.display = 'block';
-}
-
-function cancelEditProfile() {
-  document.getElementById('profile-view-btns').style.display = 'flex';
-  document.getElementById('profile-edit-form').style.display = 'none';
-}
-
-function saveProfile() {
-  const name = document.getElementById('profile-name-input').value.trim();
-  if (!name) return;
-  const users = load('sm_users', []);
-  const updated = users.map(u => u.id === STATE.user.id ? {...u, name} : u);
-  save('sm_users', updated);
-  STATE.user = {...STATE.user, name};
-  save('sm_session', STATE.user);
-  document.getElementById('sb-name').textContent = name;
-  updateProfile(); cancelEditProfile();
-  toast('Profile updated ✅');
-}
-
-// ─── TOAST ───────────────────────────────────────────────────
-function toast(msg) {
-  const el = document.createElement('div');
-  el.className = 'toast';
-  el.innerHTML = `<span>${msg}</span>`;
-  document.getElementById('toast-container').appendChild(el);
-  setTimeout(() => el.remove(), 3200);
-}
-
-// ─── UTILS ───────────────────────────────────────────────────
-function uid() { return Math.random().toString(36).slice(2, 9); }
-function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-
-// ─── CANVAS BG ───────────────────────────────────────────────
-function startCanvas() {
-  const canvas = document.getElementById('bg-canvas');
-  const ctx = canvas.getContext('2d');
-  let W, H, raf;
-  const particles = [];
-  const lines = [];
-
-  function resize() {
-    W = canvas.width = window.innerWidth;
-    H = canvas.height = window.innerHeight;
+// ════════ CANVAS BG ════════
+function startCanvas(){
+  const cv=$('bg-canvas'),ctx=cv.getContext('2d');let W,H,ptcls=[],lns=[],raf;
+  function resize(){W=cv.width=window.innerWidth;H=cv.height=window.innerHeight;}
+  function setup(){
+    ptcls=[];lns=[];
+    for(let i=0;i<70;i++)ptcls.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35,r:Math.random()*2.5+1,c:SCOLS[Math.floor(Math.random()*8)]});
+    for(let i=0;i<25;i++)lns.push({x1:Math.random()*W,y1:Math.random()*H,x2:Math.random()*W,y2:Math.random()*H,vx1:(Math.random()-.5)*.18,vy1:(Math.random()-.5)*.18,vx2:(Math.random()-.5)*.18,vy2:(Math.random()-.5)*.18,c:SCOLS[Math.floor(Math.random()*8)]});
   }
-
-  function setup() {
-    particles.length = 0; lines.length = 0;
-    for (let i = 0; i < 70; i++) particles.push({
-      x: Math.random()*W, y: Math.random()*H,
-      vx: (Math.random()-.5)*.35, vy: (Math.random()-.5)*.35,
-      r: Math.random()*2.5+1,
-      col: SUB_COLORS[Math.floor(Math.random()*SUB_COLORS.length)]
-    });
-    for (let i = 0; i < 25; i++) lines.push({
-      x1:Math.random()*W, y1:Math.random()*H,
-      x2:Math.random()*W, y2:Math.random()*H,
-      vx1:(Math.random()-.5)*.18, vy1:(Math.random()-.5)*.18,
-      vx2:(Math.random()-.5)*.18, vy2:(Math.random()-.5)*.18,
-      col: SUB_COLORS[Math.floor(Math.random()*SUB_COLORS.length)]
-    });
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    lns.forEach(l=>{l.x1+=l.vx1;l.y1+=l.vy1;l.x2+=l.vx2;l.y2+=l.vy2;if(l.x1<0||l.x1>W)l.vx1*=-1;if(l.y1<0||l.y1>H)l.vy1*=-1;if(l.x2<0||l.x2>W)l.vx2*=-1;if(l.y2<0||l.y2>H)l.vy2*=-1;ctx.beginPath();ctx.moveTo(l.x1,l.y1);ctx.lineTo(l.x2,l.y2);ctx.strokeStyle=l.c+'14';ctx.lineWidth=1;ctx.stroke();});
+    ptcls.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.c+'55';ctx.fill();});
+    raf=requestAnimationFrame(draw);
   }
-
-  function draw() {
-    ctx.clearRect(0, 0, W, H);
-    lines.forEach(l => {
-      l.x1+=l.vx1; l.y1+=l.vy1; l.x2+=l.vx2; l.y2+=l.vy2;
-      if(l.x1<0||l.x1>W) l.vx1*=-1; if(l.y1<0||l.y1>H) l.vy1*=-1;
-      if(l.x2<0||l.x2>W) l.vx2*=-1; if(l.y2<0||l.y2>H) l.vy2*=-1;
-      ctx.beginPath(); ctx.moveTo(l.x1,l.y1); ctx.lineTo(l.x2,l.y2);
-      ctx.strokeStyle = l.col+'14'; ctx.lineWidth=1; ctx.stroke();
-    });
-    particles.forEach(p => {
-      p.x+=p.vx; p.y+=p.vy;
-      if(p.x<0||p.x>W) p.vx*=-1; if(p.y<0||p.y>H) p.vy*=-1;
-      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-      ctx.fillStyle = p.col+'55'; ctx.fill();
-    });
-    raf = requestAnimationFrame(draw);
-  }
-
-  window.addEventListener('resize', () => { resize(); setup(); });
-  resize(); setup(); draw();
+  window.addEventListener('resize',()=>{resize();setup();});
+  resize();setup();draw();
 }
 
-// ─── BOOT ────────────────────────────────────────────────────
-window.addEventListener('DOMContentLoaded', init);
+window.addEventListener('DOMContentLoaded',init);
 </script>
 </body>
 </html>
